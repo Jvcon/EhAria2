@@ -1,7 +1,7 @@
 ; --------------------- COMPILER DIRECTIVES --------------------------
 
 ;@Ahk2Exe-SetDescription Enhanced Aria2AHK
-;@Ahk2Exe-SetVersion 0.0.0.3
+;@Ahk2Exe-SetVersion 0.0.0.4
 ;@Ahk2Exe-SetCopyright Jacques Yip
 ;@Ahk2Exe-SetMainIcon EhAria2.ico
 ;@Ahk2Exe-SetOrigFilename EhAria2.exe
@@ -34,8 +34,8 @@ CONF.Setting := {
 }
 CONF.Profile := {
     CurrentProfile: 1
-    , ProfileName1: ""
-    , ProfilePath1: ""
+    , ProfileName1: "Downloads"
+    , ProfilePath1: "D:\Downloads"
     , ProfileName2: ""
     , ProfilePath2: ""
     , ProfileName3: ""
@@ -59,6 +59,35 @@ If !FileExist(CONF_Path) {
 }
 CONF.ReadFile()
 
+FileInstall("index.html", "index.html", 1)
+FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
+If (!FileExist(A_ScriptDir . "\aria2.conf")) {
+    FileInstall("aria2.conf", "aria2.conf")
+}
+else{
+    If(FileRead(A_ScriptDir . "\aria2.conf")=""){
+        FileInstall("aria2.conf", "aria2.conf",1)
+    }
+}
+If(FileRead(CONF_Path)=""){
+    CONF.WriteFile()
+}
+If (!FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')){
+    MsgBox "The aria2 couldn't found, the program will exit."
+    ExitTray()
+}
+
+If (CONF.Setting.Aria2SessionPath = "") {
+    If (!FileExist(A_ScriptDir . "\aria2.session")) {
+        FileAppend "", A_ScriptDir . "\aria2.session"
+    }
+}
+else {
+    If (!FileExist(CONF.Setting.Aria2SessionPath . "\aria2.session")) {
+        FileAppend "", CONF.Setting.Aria2SessionPath . "\aria2.session"
+    }
+}
+
 Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
 Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
 
@@ -75,28 +104,6 @@ Global SubMenuAddTaskProxy := Menu()
 Global AriaNg := Gui("Resize")
 Global main
 Global wvc
-
-FileInstall("index.html", "index.html", 1)
-FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
-If (!FileExist(A_ScriptDir . "\aria2.conf")) {
-    FileInstall("aria2.conf", "aria2.conf")
-}
-If (!FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')){
-    MsgBox "The aria2 couldn't found, the program will exit."
-    ExitApp
-}
-
-If (CONF.Setting.Aria2SessionPath = "") {
-    If (!FileExist(A_ScriptDir . "\aria2.session")) {
-        FileAppend "", A_ScriptDir . "\aria2.session"
-    }
-}
-else {
-    If (!FileExist(CONF.Setting.Aria2SessionPath . "\aria2.session")) {
-        FileAppend "", CONF.Setting.Aria2SessionPath . "\aria2.session"
-    }
-}
-
 
 ; --------------------- Tray --------------------------
 
