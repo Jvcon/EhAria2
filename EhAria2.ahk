@@ -10,6 +10,7 @@
 
 #Include <ConfMan>
 #Include <WebView2>
+#Include <WindowsTheme>
 
 #Requires AutoHotkey >=v2.0
 #SingleInstance force
@@ -57,7 +58,7 @@ CONF.Speed.SetOpts("PARAMS")
 If !FileExist(CONF_Path) {
     FileAppend "", CONF_Path
 }
-If(FileRead(CONF_Path)=""){
+If (FileRead(CONF_Path) = "") {
     CONF.WriteFile()
 }
 CONF.ReadFile()
@@ -67,13 +68,13 @@ FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 If (!FileExist(A_ScriptDir . "\aria2.conf")) {
     FileInstall("aria2.conf", "aria2.conf")
 }
-else{
-    If(FileRead(A_ScriptDir . "\aria2.conf")=""){
-        FileInstall("aria2.conf", "aria2.conf",1)
+else {
+    If (FileRead(A_ScriptDir . "\aria2.conf") = "") {
+        FileInstall("aria2.conf", "aria2.conf", 1)
     }
 }
 
-If (!FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')){
+If (!FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')) {
     MsgBox "The aria2 couldn't found, the program will exit."
     ExitTray()
 }
@@ -89,6 +90,7 @@ else {
     }
 }
 
+Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
 
 Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
 Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
@@ -103,9 +105,7 @@ Global SubMenuSpeed := Menu()
 Global SubMenuAddTask := Menu()
 Global SubMenuAddTaskProxy := Menu()
 
-Global AriaNg := Gui("Resize")
-Global main
-Global wvc
+WindowsTheme.SetAppMode(!sysThemeMode)
 
 ; --------------------- Tray --------------------------
 
@@ -199,10 +199,10 @@ CreateSpeedMenu(recreate := 0) {
 
 AddTaskToMenuHandler(ItemName, ItemPos, MyMenu) {
     If (MyMenu = SubMenuAddTaskProxy) {
-        AddTask(,ItemPos,1)
+        AddTask(, ItemPos, 1)
     }
     else if (MyMenu = SubMenuAddTask) {
-        AddTask(,ItemPos,0)
+        AddTask(, ItemPos, 0)
     }
     return
 }
@@ -211,45 +211,50 @@ AddTaskMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     AddTask()
 }
 
-AddTask(uri:="",profile:="",proxy:=""){
-    if (proxy=""){
+AddTask(uri := "", profile := "", proxy := "") {
+
+    if (proxy = "") {
         proxy := CONF.Setting.Aria2ProxyEnable
     }
-    if (profile=""){
+
+    if (profile = "") {
         profile := CONF.Profile.CurrentProfile
         path := CurrentProfilePath
     }
-    else if (profile>3){
+    else if (profile > 3) {
         MsgBox "Couldn't found profile"
         return
     }
-    else{
-        path:= IniRead(CONF_Path, "Profile", "ProfilePath" . profile)
+    else {
+        path := IniRead(CONF_Path, "Profile", "ProfilePath" . profile)
     }
-    if (uri=""){
-        uri := InputBox("新建 HTTP / HTTPS / FTP / SFTP / Magnet 任务:", "添加任务", "w320 h240").Value
+
+    if (uri = "") {
+        uriInput:= InputBox("新建 HTTP / HTTPS / FTP / SFTP / Magnet 任务:", "添加任务", "w320 h240")
+        uri := uriInput.Value
     }
     if (uri=""){
         return
     }
-    if(CONF.Setting.Aria2RpcSecret=""){
-        if(proxy !=0){
+    if (CONF.Setting.Aria2RpcSecret = "") {
+        if (proxy != 0) {
             Aria2AddTaskData := '`{"jsonrpc":"2.0","id":"1","method":"aria2.addUri","params":[["' . uri . '"],`{"dir":"' . path . '","all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
         }
-        else{
+        else {
             Aria2AddTaskData := "`{`"jsonrpc`":`"2.0`",`"id`":`"1`",`"method`":`"aria2.addUri`",`"params`":[[`"" . uri . "`"],`{`"dir`":`"" . path . "`"`}]`}"
         }
     }
-    else{
-        if (proxy!=0){
+    else {
+        if (proxy != 0) {
             Aria2AddTaskData := '`{"jsonrpc":"2.0","id":"1","method":"aria2.addUri","params":["token:' . CONF.Setting.Aria2RpcSecret . '",["' . uri . '"],`{"dir":"' . path . '","all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
         }
-        else{
+        else {
             Aria2AddTaskData := "`{`"jsonrpc`":`"2.0`",`"id`":`"1`",`"method`":`"aria2.addUri`",`"params`":[`"token:" . CONF.Setting.Aria2RpcSecret . "`",[`"" . uri . "`"],`{`"dir`":`"" . path . "`"`}]`}"
         }
     }
     HttpPost(Aria2RpcUrl, Aria2AddTaskData)
 }
+
 
 AddTorrent(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     If (A_IsCompiled = 1) {
@@ -270,32 +275,38 @@ HttpPost(URL, PData) {
 }
 
 OpenFronted(*) {
-    WVInitial()
-    main.Show(Format('w{} h{}', A_ScreenWidth * 0.6, A_ScreenHeight * 0.6))
+    if (WinExist("AriaNG")){
+            WinActivate "AriaNG"
+    }else{
+        AriaNGInitial()
+        AriaNG.Show(Format('w{} h{}', A_ScreenWidth * 0.6, A_ScreenHeight * 0.6))
+    }
     return
 }
 
-WVInitial() {
-    global main := Gui('+Resize')
+AriaNGInitial() {
+    global AriaNG := Gui('+Resize')
+    WindowsTheme.SetWindowAttribute(AriaNG, !sysThemeMode)
     If !DirExist(A_Temp "\EhAria2\")
         DirCreate(A_Temp "\EhAria2\")
-    global wvc := WebView2.create(main.Hwnd, MainInvoke, 0, A_Temp "\EhAria2\")
-    main.MarginX := main.MarginY := 0
-    main.Title := "AriaNG"
-    main.OnEvent('Size', WVGuiSize)
+    global wvc := WebView2.create(AriaNG.Hwnd, AriaNGInvoke, 0, A_Temp "\EhAria2\")
+    AriaNG.MarginX := AriaNG.MarginY := 0
+    AriaNG.Title := "AriaNG"
+    AriaNG.OnEvent('Size', AriaNGGuiSize)
+    WindowsTheme.SetWindowTheme(AriaNG, !sysThemeMode)
     return
 }
 
-MainInvoke(wvc) {
+AriaNGInvoke(wvc) {
     global
-    main.GetClientPos(, , &w, &h)
-    ctl := main.AddText('x0 y25 w' w ' h' (h - 25))
+    AriaNG.GetClientPos(, , &w, &h)
+    ctl := AriaNG.AddText('x0 y25 w' w ' h' (h - 25))
     wv := wvc.CoreWebView2
     wv.Navigate('file:///' A_ScriptDir '\index.html')
     return (wvc)
 }
 
-WVGuiSize(GuiObj, MinMax, Width, Height) {
+AriaNGGuiSize(GuiObj, MinMax, Width, Height) {
     If (MinMax != -1) {
         try ctl.Move(, , Width, Height - 23)
         try wvc.Fill()
@@ -363,10 +374,10 @@ StartAria2(*) {
         cmd .= " --input-file=" CONF.Setting.Aria2SessionPath . "\aria2.session"
         cmd .= " --save-session=" CONF.Setting.Aria2SessionPath . "\aria2.session"
     }
-    If (CONF.Setting.Aria2RpcPort != ""){
+    If (CONF.Setting.Aria2RpcPort != "") {
         cmd .= " --rpc-listen-port=" CONF.Setting.Aria2RpcPort
     }
-    else{
+    else {
         cmd .= " --rpc-listen-port=6800"
     }
     If (CONF.Setting.Aria2RpcSecret != "") {
@@ -383,7 +394,7 @@ StartAria2(*) {
 CheckKillAria2()
 {
     If ProcessExist("aria2c.exe") != 0
-    ProcessClose("aria2c.exe")
+        ProcessClose("aria2c.exe")
     return
 }
 
