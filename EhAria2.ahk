@@ -77,7 +77,7 @@ Global main
 Global wvc
 
 FileInstall("index.html", "index.html", 1)
-; FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
+FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 If (!FileExist(A_ScriptDir . "\aria2.conf")) {
     FileInstall("aria2.conf", "aria2.conf")
 }
