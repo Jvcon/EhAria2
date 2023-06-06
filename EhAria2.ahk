@@ -13,6 +13,9 @@
 
 #Requires AutoHotkey >=v2.0
 #SingleInstance force
+
+FileEncoding "UTF-8"
+
 Persistent
 
 CONF_Path := ".\EhAria2.ini"

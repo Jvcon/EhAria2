@@ -12,6 +12,8 @@
 #SingleInstance force
 #NoTrayIcon
 
+FileEncoding "UTF-8"
+
 CONF_Path := ".\EhAria2Ahk.ini"
 
 Global Aria2RpcPort := IniRead(CONF_Path, "Setting", "Aria2RpcPort")
