@@ -14,7 +14,7 @@
 #Requires AutoHotkey >=v2.0
 #SingleInstance force
 
-FileEncoding "UTF-8"
+FileEncoding "UTF-8-RAW"
 
 Persistent
 
@@ -55,6 +55,9 @@ CONF.Setting.SetOpts("PARAMS")
 CONF.Profile.SetOpts("PARAMS")
 CONF.Speed.SetOpts("PARAMS")
 If !FileExist(CONF_Path) {
+    FileAppend "", CONF_Path
+}
+If(FileRead(CONF_Path)=""){
     CONF.WriteFile()
 }
 CONF.ReadFile()
@@ -69,9 +72,7 @@ else{
         FileInstall("aria2.conf", "aria2.conf",1)
     }
 }
-If(FileRead(CONF_Path)=""){
-    CONF.WriteFile()
-}
+
 If (!FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')){
     MsgBox "The aria2 couldn't found, the program will exit."
     ExitTray()
@@ -88,11 +89,12 @@ else {
     }
 }
 
-Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
-Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
 
 Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
 Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
+
+Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
+Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
 
 Global Aria2RpcUrl := 'http://127.0.0.1:' . CONF.Setting.Aria2RpcPort . '/jsonrpc'
 
@@ -374,7 +376,6 @@ StartAria2(*) {
     cmd .= " --max-download-limit=" . CurrentSpeedLimit
     cmd .= " --dir=" . CurrentProfilePath
     cmd .= " --bt-tracker=" . CONF.Setting.BTTrackers
-    MsgBox cmd
     Run cmd, , "Hide"
     return
 }
