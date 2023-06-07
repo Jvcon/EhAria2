@@ -69,8 +69,8 @@ If !FileExist(A_ScriptDir "\lang" ) {
 }
 
 If (A_IsCompiled = 1){
-    FileInstall(A_ScriptDir "\lang\en_us.ini",A_ScriptDir "\lang\en_us.ini",1)
-    FileInstall(A_ScriptDir "\lang\zh_cn.ini",A_ScriptDir "\lang\zh_cn.ini",1)
+    FileInstall(".\lang\en_us.ini","lang\en_us.ini",1)
+    FileInstall(".\lang\zh_cn.ini","lang\zh_cn.ini",1)
     
     FileInstall("index.html", "index.html", 1)
     FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
