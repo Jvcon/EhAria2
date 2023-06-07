@@ -12,9 +12,14 @@
 #SingleInstance force
 #NoTrayIcon
 
-FileEncoding "UTF-8"
+FileEncoding "UTF-8-RAW"
 
-CONF_Path := ".\EhAria2Ahk.ini"
+CONF_Path := ".\EhAria2.ini"
+Global Language:= IniRead(CONF_Path,"Setting","Language")
+
+LANG_PATH := A_ScriptDir "\lang\" Language ".ini"
+Global lGuiSelectTorrentTitle:= IniRead(LANG_PATH,"GuiTorrent", "title")
+Global lGuiSelectTorrentExt:= IniRead(LANG_PATH,"GuiTorrent", "ext" )
 
 Global Aria2RpcPort := IniRead(CONF_Path, "Setting", "Aria2RpcPort")
 Global Aria2RpcUrl := 'http://127.0.0.1:' . Aria2RpcPort . '/jsonrpc'
@@ -28,7 +33,7 @@ If (A_Args.Has(1) = True)
 {
     Global TorrentPN := A_Args[1]
 } Else {
-    Global TorrentPN := FileSelect(, , "选择 Torrent 文件", "Torrent 文件 (*.torrent)")
+    Global TorrentPN := FileSelect(, , lGuiSelectTorrentTitle, lGuiSelectTorrentExt " (*.torrent)")
     If TorrentPN = ""
         Exitapp
 }

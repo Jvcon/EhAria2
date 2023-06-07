@@ -22,7 +22,8 @@ Persistent
 CONF_Path := ".\EhAria2.ini"
 CONF := ConfMan.GetConf(CONF_Path)
 CONF.Setting := {
-    Aria2Path: ""
+    Language: "en_us"
+    , Aria2Path: "C:/Users/Jacques/scoop/apps/aria2/current"
     , Aria2ConfigPath: ""
     , Aria2Config: "aria2.conf"
     , Aria2RpcPort: 6800
@@ -36,7 +37,7 @@ CONF.Setting := {
 CONF.Profile := {
     CurrentProfile: 1
     , ProfileName1: "Downloads"
-    , ProfilePath1: "D:\Downloads"
+    , ProfilePath1: "D:/Downloads"
     , ProfileName2: ""
     , ProfilePath2: ""
     , ProfileName3: ""
@@ -63,8 +64,17 @@ If (FileRead(CONF_Path) = "") {
 }
 CONF.ReadFile()
 
-FileInstall("index.html", "index.html", 1)
-FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
+If !FileExist(A_ScriptDir "\lang" ) {
+    DirCreate(A_ScriptDir "\lang" )
+}
+
+If (A_IsCompiled = 1){
+    FileInstall(A_ScriptDir "\lang\en_us.ini",A_ScriptDir "\lang\en_us.ini",1)
+    FileInstall(A_ScriptDir "\lang\zh_cn.ini",A_ScriptDir "\lang\zh_cn.ini",1)
+    
+    FileInstall("index.html", "index.html", 1)
+    FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
+}
 If (!FileExist(A_ScriptDir . "\aria2.conf")) {
     FileInstall("aria2.conf", "aria2.conf")
 }
@@ -105,38 +115,15 @@ Global SubMenuSpeed := Menu()
 Global SubMenuAddTask := Menu()
 Global SubMenuAddTaskProxy := Menu()
 
+Global EhAria2Tray := A_TrayMenu
+global LangMenu := Menu()
+
 WindowsTheme.SetAppMode(!sysThemeMode)
 
-; --------------------- Tray --------------------------
+InitialLanguage()
 
-A_IconTip := "Enhanced Aria2AHK"
-If A_IsCompiled = 0
-    TraySetIcon("EhAria2.ico", 1, 1)
-EhAria2Tray := A_TrayMenu
-EhAria2Tray.Delete
-A_TrayMenu.ClickCount := 1
-
-EhAria2Tray.Add("Speed Limit", SubMenuSpeed)
-EhAria2Tray.Add("Profile", SubMenuProflie)
-EhAria2Tray.Add("Enable Proxy", SwitchProxyStatus)
-If (CONF.Setting.Aria2ProxyEnable = 1) {
-    EhAria2Tray.Check("Enable Proxy")
-}
-EhAria2Tray.Add("Update TrackersList", UpdateBTTracker)
-EhAria2Tray.Add
-EhAria2Tray.Add "Exit", ExitTray
-EhAria2Tray.Add "Restart", RestartAria2
-EhAria2Tray.Add("Open AriaNG", OpenFronted)
-A_TrayMenu.Default := "Open AriaNG"
-EhAria2Tray.Add
-EhAria2Tray.Add("Add Torrent to...", AddTorrent)
-
-EhAria2Tray.Add("Add Task with Proxy to ...", SubMenuAddTaskProxy)
-EhAria2Tray.Add("Add Task to ...", SubMenuAddTask)
-EhAria2Tray.Add
-EhAria2Tray.Add("Add Torrent", AddTorrent)
-EhAria2Tray.Add("Add Task", AddTaskMenuHandler)
-
+CreateTrayMenu()
+CreateLangMenu()
 CreateProfileMenu()
 CreateSpeedMenu()
 
@@ -150,6 +137,44 @@ StartAria2()
 return
 
 ; --------------------- Func --------------------------
+CreateTrayMenu(*){
+    A_IconTip := "Enhanced Aria2"
+    If A_IsCompiled = 0
+        TraySetIcon("EhAria2.ico", 1, 1)
+    EhAria2Tray.Delete
+    A_TrayMenu.ClickCount := 1
+    EhAria2Tray.Add(lTrayLang, LangMenu)
+    EhAria2Tray.Add(lTraySpeedLimit, SubMenuSpeed)
+    EhAria2Tray.Add(lTrayProfile, SubMenuProflie)
+    EhAria2Tray.Add(lTrayEnableProxy, SwitchProxyStatus)
+    If (CONF.Setting.Aria2ProxyEnable = 1) {
+        EhAria2Tray.Check(lTrayEnableProxy)
+    }
+    EhAria2Tray.Add(lTrayUpdateTrackerList, UpdateBTTracker)
+    EhAria2Tray.Add
+    EhAria2Tray.Add(lTrayExit, ExitTray)
+    EhAria2Tray.Add(lTrayRestart, RestartAria2)
+    EhAria2Tray.Add(lTrayOpenAriang, OpenFronted)
+    A_TrayMenu.Default := lTrayOpenAriang
+    EhAria2Tray.Add
+    EhAria2Tray.Add(lTrayAddTorrentTo, AddTorrent)
+    
+    EhAria2Tray.Add(lTrayAddTaskProxyTo, SubMenuAddTaskProxy)
+    EhAria2Tray.Add(lTrayAddTaskTo, SubMenuAddTask)
+    EhAria2Tray.Add
+    EhAria2Tray.Add(lTrayAddTorrent, AddTorrent)
+    EhAria2Tray.Add(lTrayAddTask, AddTaskMenuHandler)
+}
+
+CreateLangMenu(*) {
+    LangMenu.Delete
+    Loop Files A_ScriptDir "\lang\*.ini" {
+        SplitPath A_LoopFileName, , , , &FileNameNoExt
+        LangMenu.Add(FileNameNoExt, SwitchLanguage)
+    }
+    LangMenu.Check(CONF.Setting.Language)
+}
+
 CreateProfileMenu(recreate := 0) {
     If (recreate = 1) {
         SubMenuProflie.Delete
@@ -230,8 +255,8 @@ AddTask(uri := "", profile := "", proxy := "") {
     }
 
     if (uri = "") {
-        uriInput:= InputBox("新建 HTTP / HTTPS / FTP / SFTP / Magnet 任务:", "添加任务", "w320 h240")
-        uri := uriInput.Value
+        UriInput(&uri)
+        ; uriInput:= InputBox("新建 HTTP / HTTPS / FTP / SFTP / Magnet 任务:", "添加任务", "w320 h240")
     }
     if (uri=""){
         return
@@ -255,6 +280,36 @@ AddTask(uri := "", profile := "", proxy := "") {
     HttpPost(Aria2RpcUrl, Aria2AddTaskData)
 }
 
+UriInput(&uri){
+    ReturnNow:=false
+    UriInputGui:= Gui("-Theme")
+    WindowsTheme.SetWindowAttribute(UriInputGui, !sysThemeMode)
+    UriInputGui.Add("Text","x2 y2 w320 h20",lGuiUriInputText)
+    UriInputEdit:= UriInputGui.Add("Edit", "vuri x2 y20 w320 h240 r4")
+    UriInputBtnOK:= UriInputGui.Add("Button", "x2 y90 w149 h30", lGuiUriInputBtnOK)
+    UriInputBtnOK.OnEvent("Click", MLI_OK.Bind("Normal"))
+    UriInputBtnCancel:=UriInputGui.Add("Button", "x159 y90 w149 h30", lGuiUriInputBtnCancel)
+    UriInputBtnCancel.OnEvent("Click",MLI_Cancel.Bind("Normal"))
+    UriInputGui.Title:=lGuiUriInputTitle
+    WindowsTheme.SetWindowTheme(UriInputGui, !sysThemeMode)
+    UriInputGui.Show("h120 w330")
+    MLI_Wait()
+    MLI_OK(A_GuiEvent, GuiCtrlObj, Info, *){
+        uri := UriInputEdit.Text
+        ReturnNow:=true
+    }
+    MLI_Cancel(A_GuiEvent, GuiCtrlObj, Info, *){
+        uri:=""
+        ReturnNow:=true
+    }
+    MLI_Wait(*){
+        while (!ReturnNow){
+            Sleep(100)
+        }
+    }
+    UriInputGui.Destroy
+    return uri
+}
 
 AddTorrent(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     If (A_IsCompiled = 1) {
@@ -339,14 +394,21 @@ SwitchProxyStatus(*) {
     } else {
         CONF.Setting.Aria2ProxyEnable := 1
     }
-    EhAria2Tray.ToggleCheck("Enable Proxy")
+    EhAria2Tray.ToggleCheck(lTrayEnableProxy)
     return
 }
 
 UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
 {
     Download CONF.Setting.BTTrackersList, A_ScriptDir . "\TrackersLists.list"
-    Trackers := FileOpen(A_ScriptDir . "\TrackersLists.list", "r").ReadLine()
+    Trackers := ""
+    loop read A_ScriptDir . "\TrackersLists.list"
+        if (A_LoopReadLine=""){
+        
+        }else{
+            Trackers .= A_LoopReadLine ','
+        }
+
     IniWrite Trackers, CONF_Path, "Setting", "BTTrackers"
     FileDelete A_ScriptDir . "\TrackersLists.list"
     Reload
@@ -402,6 +464,39 @@ RestartAria2(*) {
     CheckKillAria2()
     StartAria2()
     return
+}
+
+SwitchLanguage(ItemName, ItemPos, MyMenu) {
+    CONF.Setting.Language := ItemName
+    CONF.WriteFile()
+    InitialLanguage()
+    CreateTrayMenu()
+    CreateLangMenu()
+}
+
+InitialLanguage(*) {
+    LANG_PATH := A_ScriptDir "\lang\" CONF.Setting.Language ".ini"
+
+    global lTrayExit := IniRead(LANG_PATH, "Tray", "exit")
+    global lTrayRestart := IniRead(LANG_PATH, "Tray", "restart")
+    global lTrayOpenAriang := IniRead(LANG_PATH, "Tray", "openariang")
+
+    global lTrayLang := IniRead(LANG_PATH, "Tray", "lang")
+    global lTraySpeedLimit := IniRead(LANG_PATH, "Tray", "speedlimit")
+    global lTrayProfile := IniRead(LANG_PATH, "Tray", "profile")
+    global lTrayEnableProxy := IniRead(LANG_PATH, "Tray", "enableproxy")
+    global lTrayUpdateTrackerList := IniRead(LANG_PATH, "Tray", "updatetracker")
+
+    global lTrayAddTorrentTo := IniRead(LANG_PATH, "Tray", "addtorrentto")
+    global lTrayAddTaskProxyTo := IniRead(LANG_PATH, "Tray", "addtaskproxyto")
+    global lTrayAddTaskTo := IniRead(LANG_PATH, "Tray", "addtaskto")
+    global lTrayAddTorrent := IniRead(LANG_PATH, "Tray", "addtorrent")
+    global lTrayAddTask := IniRead(LANG_PATH, "Tray", "addstask")
+
+    global lGuiUriInputText := IniRead(LANG_PATH, "GuiUriInput", "text")
+    global lGuiUriInputBtnOK := IniRead(LANG_PATH, "GuiUriInput", "btnok")
+    global lGuiUriInputBtnCancel := IniRead(LANG_PATH, "GuiUriInput", "btncancel")
+    global lGuiUriInputTitle := IniRead(LANG_PATH, "GuiUriInput", "title")
 }
 
 ExitTray(*) {
