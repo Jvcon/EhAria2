@@ -1,7 +1,7 @@
 ; --------------------- COMPILER DIRECTIVES --------------------------
 
 ;@Ahk2Exe-SetDescription Enhanced Aria2AHK
-;@Ahk2Exe-SetVersion 0.0.0.5
+;@Ahk2Exe-SetVersion 0.0.6
 ;@Ahk2Exe-SetCopyright Jacques Yip
 ;@Ahk2Exe-SetMainIcon EhAria2.ico
 ;@Ahk2Exe-SetOrigFilename EhAria2.exe
@@ -121,11 +121,11 @@ global LangMenu := Menu()
 WindowsTheme.SetAppMode(!sysThemeMode)
 
 InitialLanguage()
-
 CreateTrayMenu()
 CreateLangMenu()
 CreateProfileMenu()
 CreateSpeedMenu()
+InitialProxy()
 
 ; --------------------- Intial --------------------------
 If (CONF.Setting.BTTrackers = "") {
@@ -134,7 +134,7 @@ If (CONF.Setting.BTTrackers = "") {
 
 StartAria2()
 
-return
+Return
 
 ; --------------------- Func --------------------------
 CreateTrayMenu(*){
@@ -147,9 +147,6 @@ CreateTrayMenu(*){
     EhAria2Tray.Add(lTraySpeedLimit, SubMenuSpeed)
     EhAria2Tray.Add(lTrayProfile, SubMenuProflie)
     EhAria2Tray.Add(lTrayEnableProxy, SwitchProxyStatus)
-    If (CONF.Setting.Aria2ProxyEnable = 1) {
-        EhAria2Tray.Check(lTrayEnableProxy)
-    }
     EhAria2Tray.Add(lTrayUpdateTrackerList, UpdateBTTracker)
     EhAria2Tray.Add
     EhAria2Tray.Add(lTrayExit, ExitTray)
@@ -164,6 +161,7 @@ CreateTrayMenu(*){
     EhAria2Tray.Add
     EhAria2Tray.Add(lTrayAddTorrent, AddTorrent)
     EhAria2Tray.Add(lTrayAddTask, AddTaskMenuHandler)
+    return
 }
 
 CreateLangMenu(*) {
@@ -173,6 +171,7 @@ CreateLangMenu(*) {
         LangMenu.Add(FileNameNoExt, SwitchLanguage)
     }
     LangMenu.Check(CONF.Setting.Language)
+    return
 }
 
 CreateProfileMenu(recreate := 0) {
@@ -375,6 +374,7 @@ SwitchSpeedLimit(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     CONF.Speed.CurrentSpeed := ItemPos
     global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
     SubMenuSpeed.ToggleCheck(CurrentSpeedName)
+    CONF.WriteFile()
     RestartAria2()
     return
 }
@@ -384,6 +384,7 @@ SwitchProfile(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     CONF.Profile.CurrentProfile := ItemPos
     global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
     SubMenuProflie.ToggleCheck(CurrentProfileName)
+    CONF.WriteFile()
     RestartAria2()
     return
 }
@@ -394,8 +395,25 @@ SwitchProxyStatus(*) {
     } else {
         CONF.Setting.Aria2ProxyEnable := 1
     }
-    EhAria2Tray.ToggleCheck(lTrayEnableProxy)
+    CONF.WriteFile()
+    InitialProxy()
+    RestartAria2()
     return
+}
+
+InitialProxy(*){
+    If (CONF.Setting.Aria2ProxyEnable = 1) {
+        If (!(CONF.Setting.Aria2Proxy = "")){
+            EhAria2Tray.Check(lTrayEnableProxy)
+        }
+        else{
+            MsgBox lMsgProxyError
+        }
+    }
+    else{
+        EhAria2Tray.Uncheck(lTrayEnableProxy)
+
+    }
 }
 
 UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
@@ -445,6 +463,11 @@ StartAria2(*) {
     If (CONF.Setting.Aria2RpcSecret != "") {
         cmd .= " --rpc-secret=" CONF.Setting.Aria2RpcSecret
     }
+    If (CONF.Setting.Aria2ProxyEnable = 1){
+        If (!(CONF.Setting.Aria2Proxy = "")){
+            cmd .= " --all-proxy=`"" CONF.Setting.Aria2Proxy "`""
+        }        
+    }
     cmd .= " --max-overall-download-limit=" . CurrentSpeedLimit
     cmd .= " --max-download-limit=" . CurrentSpeedLimit
     cmd .= " --dir=" . CurrentProfilePath
@@ -472,6 +495,7 @@ SwitchLanguage(ItemName, ItemPos, MyMenu) {
     InitialLanguage()
     CreateTrayMenu()
     CreateLangMenu()
+    return
 }
 
 InitialLanguage(*) {
@@ -497,6 +521,9 @@ InitialLanguage(*) {
     global lGuiUriInputBtnOK := IniRead(LANG_PATH, "GuiUriInput", "btnok")
     global lGuiUriInputBtnCancel := IniRead(LANG_PATH, "GuiUriInput", "btncancel")
     global lGuiUriInputTitle := IniRead(LANG_PATH, "GuiUriInput", "title")
+    
+    global lMsgProxyError := IniRead(LANG_PATH, "Msg", "proxyerror")
+    return
 }
 
 ExitTray(*) {

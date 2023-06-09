@@ -1,22 +1,28 @@
 {
-    "name": "EhAria2",
-    "version": "0.0.0.3",
-    "description": "",
-    "main": "EhAria2.ahk",
-    "scripts": {
+  "name": "EhAria2",
+  "version": "0.0.6",
+  "description": "",
+  "main": "EhAria2.ahk",
+  "scripts": {
       "start": "nodemon --exec EhAria2.ahk",
-      "test": "echo \"Error: no script specified\" && exit 1"
-    },
-    "nodemonConfig": {
-      "ignore": ["node_modules", "dist"],
+      "build": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./build.ps1 %npm_package_version%"
+  },
+  "nodemonConfig": {
+      "ignore": [
+          "node_modules",
+          "dist"
+      ],
       "delay": "250",
-      "watch": ["*", "scripts/*"],
+      "watch": [
+          "*",
+          "scripts/*"
+      ],
       "ext": "js, json, ahk, ini, conf"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "",
-    "dependencies": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "dependencies": {
       "nodemon": "^2.0.22"
-    }
   }
+}
