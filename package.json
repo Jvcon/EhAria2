@@ -24,11 +24,10 @@
     "keywords": [],
     "author": "",
     "license": "",
-    "dependencies": {
-        "nodemon": "^2.0.22"
-    },
     "devDependencies": {
-        "cz-conventional-changelog": "^3.3.0"
+        "conventional-changelog-cli": "^0.0.1",
+        "cz-conventional-changelog": "^3.3.0",
+        "nodemon": "^1.14.9"
     },
     "config": {
         "commitizen": {
