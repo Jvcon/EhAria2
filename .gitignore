@@ -1,6 +1,8 @@
 # Autohotkey
 /build
 /test
+*.session
+EhAria2.ini
 
 # Logs
 logs

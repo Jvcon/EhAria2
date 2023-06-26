@@ -64,14 +64,14 @@ If (FileRead(CONF_Path) = "") {
 }
 CONF.ReadFile()
 
-If !FileExist(A_ScriptDir "\lang" ) {
-    DirCreate(A_ScriptDir "\lang" )
+If !FileExist(A_ScriptDir "\lang") {
+    DirCreate(A_ScriptDir "\lang")
 }
 
-If (A_IsCompiled = 1){
-    FileInstall(".\lang\en_us.ini","lang\en_us.ini",1)
-    FileInstall(".\lang\zh_cn.ini","lang\zh_cn.ini",1)
-    
+If (A_IsCompiled = 1) {
+    FileInstall(".\lang\en_us.ini", "lang\en_us.ini", 1)
+    FileInstall(".\lang\zh_cn.ini", "lang\zh_cn.ini", 1)
+
     FileInstall("index.html", "index.html", 1)
     FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 }
@@ -84,9 +84,19 @@ else {
     }
 }
 
-If (!FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')) {
-    MsgBox "The aria2 couldn't found, the program will exit."
-    ExitTray()
+If (CONF.Setting.Aria2Path = "") {
+    if (FileExist(A_ScriptDir . '\aria2c.exe')) {
+    }
+    else {
+        SelectPath()
+    }
+}
+else {
+    if (FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')) {
+    }
+    else {
+        SelectPath()
+    }
 }
 
 If (CONF.Setting.Aria2SessionPath = "") {
@@ -137,7 +147,7 @@ StartAria2()
 Return
 
 ; --------------------- Func --------------------------
-CreateTrayMenu(*){
+CreateTrayMenu(*) {
     A_IconTip := "Enhanced Aria2"
     If A_IsCompiled = 0
         TraySetIcon("EhAria2.ico", 1, 1)
@@ -156,7 +166,7 @@ CreateTrayMenu(*){
     A_TrayMenu.Default := lTrayOpenAriang
     EhAria2Tray.Add
     EhAria2Tray.Add(lTrayAddTorrentTo, AddTorrent)
-    
+
     EhAria2Tray.Add(lTrayAddTaskProxyTo, SubMenuAddTaskProxy)
     EhAria2Tray.Add(lTrayAddTaskTo, SubMenuAddTask)
     EhAria2Tray.Add
@@ -258,7 +268,7 @@ AddTask(uri := "", profile := "", proxy := "") {
         UriInput(&uri)
         ; uriInput:= InputBox("新建 HTTP / HTTPS / FTP / SFTP / Magnet 任务:", "添加任务", "w320 h240")
     }
-    if (uri=""){
+    if (uri = "") {
         return
     }
     if (CONF.Setting.Aria2RpcSecret = "") {
@@ -280,40 +290,40 @@ AddTask(uri := "", profile := "", proxy := "") {
     HttpPost(Aria2RpcUrl, Aria2AddTaskData)
 }
 
-SaveSession(*){
+SaveSession(*) {
     if (CONF.Setting.Aria2RpcSecret = "") {
-        Aria2SaveSessionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.saveSession"}'
+        Aria2SaveSessionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.saveSession"}'
     }
-    else{
+    else {
         Aria2SaveSessionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.saveSession","params":["token:' . CONF.Setting.Aria2RpcSecret . '"]}'
     }
     HttpPost(Aria2RpcUrl, Aria2SaveSessionData)
 }
 
-UriInput(&uri){
-    ReturnNow:=false
-    UriInputGui:= Gui("-Theme")
+UriInput(&uri) {
+    ReturnNow := false
+    UriInputGui := Gui("-Theme")
     WindowsTheme.SetWindowAttribute(UriInputGui, !sysThemeMode)
-    UriInputGui.Add("Text","x2 y2 w320 h20",lGuiUriInputText)
-    UriInputEdit:= UriInputGui.Add("Edit", "vuri x2 y20 w320 h240 r4")
-    UriInputBtnOK:= UriInputGui.Add("Button", "x2 y90 w149 h30", lGuiUriInputBtnOK)
+    UriInputGui.Add("Text", "x2 y2 w320 h20", lGuiUriInputText)
+    UriInputEdit := UriInputGui.Add("Edit", "vuri x2 y20 w320 h240 r4")
+    UriInputBtnOK := UriInputGui.Add("Button", "x2 y90 w149 h30", lGuiUriInputBtnOK)
     UriInputBtnOK.OnEvent("Click", MLI_OK.Bind("Normal"))
-    UriInputBtnCancel:=UriInputGui.Add("Button", "x159 y90 w149 h30", lGuiUriInputBtnCancel)
-    UriInputBtnCancel.OnEvent("Click",MLI_Cancel.Bind("Normal"))
-    UriInputGui.Title:=lGuiUriInputTitle
+    UriInputBtnCancel := UriInputGui.Add("Button", "x159 y90 w149 h30", lGuiUriInputBtnCancel)
+    UriInputBtnCancel.OnEvent("Click", MLI_Cancel.Bind("Normal"))
+    UriInputGui.Title := lGuiUriInputTitle
     WindowsTheme.SetWindowTheme(UriInputGui, !sysThemeMode)
     UriInputGui.Show("h120 w330")
     MLI_Wait()
-    MLI_OK(A_GuiEvent, GuiCtrlObj, Info, *){
+    MLI_OK(A_GuiEvent, GuiCtrlObj, Info, *) {
         uri := UriInputEdit.Text
-        ReturnNow:=true
+        ReturnNow := true
     }
-    MLI_Cancel(A_GuiEvent, GuiCtrlObj, Info, *){
-        uri:=""
-        ReturnNow:=true
+    MLI_Cancel(A_GuiEvent, GuiCtrlObj, Info, *) {
+        uri := ""
+        ReturnNow := true
     }
-    MLI_Wait(*){
-        while (!ReturnNow){
+    MLI_Wait(*) {
+        while (!ReturnNow) {
             Sleep(100)
         }
     }
@@ -339,15 +349,15 @@ HttpPost(URL, PData) {
     WebRequest.WaitForResponse(-1)
 }
 
-OpenFolder(*){
+OpenFolder(*) {
     Run CurrentProfilePath
     return
 }
 
 OpenFronted(*) {
-    if (WinExist("AriaNG")){
-            WinActivate "AriaNG"
-    }else{
+    if (WinExist("AriaNG")) {
+        WinActivate "AriaNG"
+    } else {
         AriaNGInitial()
         AriaNG.Show(Format('w{} h{}', A_ScreenWidth * 0.6, A_ScreenHeight * 0.6))
     }
@@ -392,10 +402,10 @@ SwitchSpeedLimit(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     SubMenuSpeed.ToggleCheck(CurrentSpeedName)
     CONF.WriteFile()
     if (CONF.Setting.Aria2RpcSecret = "") {
-        Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"max-download-limit":"' . CurrentSpeedLimit . '"}]}'
+        Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"max-download-limit":"' . CurrentSpeedLimit . '"}]}'
     }
-    else{
-        Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"max-download-limit":"' . CurrentSpeedLimit . '"}]}'
+    else {
+        Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"max-download-limit":"' . CurrentSpeedLimit . '"}]}'
     }
     HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
     return
@@ -408,10 +418,10 @@ SwitchProfile(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
     SubMenuProflie.ToggleCheck(CurrentProfileName)
     if (CONF.Setting.Aria2RpcSecret = "") {
-        Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"dir":"' . CurrentProfilePath . '"}]}'
+        Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"dir":"' . CurrentProfilePath . '"}]}'
     }
-    else{
-        Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"dir":"' . CurrentProfilePath . '"}]}'
+    else {
+        Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"dir":"' . CurrentProfilePath . '"}]}'
     }
     CONF.WriteFile()
     HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
@@ -422,20 +432,20 @@ SwitchProxyStatus(*) {
     If (CONF.Setting.Aria2ProxyEnable = 1) {
         CONF.Setting.Aria2ProxyEnable := 0
         if (CONF.Setting.Aria2RpcSecret = "") {
-            Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"all-proxy":""}]}'
+            Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"all-proxy":""}]}'
         }
-        else{
-            Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"all-proxy":""}]}'
+        else {
+            Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"all-proxy":""}]}'
         }
         HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
     } else {
-        If (!(CONF.Setting.Aria2Proxy = "")){
+        If (!(CONF.Setting.Aria2Proxy = "")) {
             CONF.Setting.Aria2ProxyEnable := 1
             if (CONF.Setting.Aria2RpcSecret = "") {
-                Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
+                Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
             }
-            else{
-                Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
+            else {
+                Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
             }
             HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
         }
@@ -448,18 +458,38 @@ SwitchProxyStatus(*) {
     return
 }
 
-InitialProxy(*){
+InitialProxy(*) {
     If (CONF.Setting.Aria2ProxyEnable = 1) {
-        If (!(CONF.Setting.Aria2Proxy = "")){
+        If (!(CONF.Setting.Aria2Proxy = "")) {
             EhAria2Tray.Check(lTrayEnableProxy)
         }
-        else{
+        else {
             MsgBox lMsgProxyError
         }
     }
-    else{
+    else {
         EhAria2Tray.Uncheck(lTrayEnableProxy)
     }
+}
+
+
+SelectPath(*) {
+    aira2selectpath := DirSelect(, 0, 'Location of aria2c')
+    if (aira2selectpath = "") {
+        MsgBox lMsgPathError
+        ExitTray()
+    }
+    else {
+        if (FileExist(aira2selectpath . '\aria2c.exe')) {
+            CONF.Setting.Aria2Path := aira2selectpath
+            CONF.WriteFile()
+        }
+        else {
+            MsgBox lMsgPathError
+            ExitTray()
+        }
+    }
+    return
 }
 
 UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
@@ -467,9 +497,9 @@ UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
     Download CONF.Setting.BTTrackersList, A_ScriptDir . "\TrackersLists.list"
     Trackers := ""
     loop read A_ScriptDir . "\TrackersLists.list"
-        if (A_LoopReadLine=""){
-        
-        }else{
+        if (A_LoopReadLine = "") {
+
+        } else {
             Trackers .= A_LoopReadLine ','
         }
 
@@ -509,10 +539,10 @@ StartAria2(*) {
     If (CONF.Setting.Aria2RpcSecret != "") {
         cmd .= " --rpc-secret=" CONF.Setting.Aria2RpcSecret
     }
-    If (CONF.Setting.Aria2ProxyEnable = 1){
-        If (!(CONF.Setting.Aria2Proxy = "")){
+    If (CONF.Setting.Aria2ProxyEnable = 1) {
+        If (!(CONF.Setting.Aria2Proxy = "")) {
             cmd .= " --all-proxy=`"" CONF.Setting.Aria2Proxy "`""
-        }        
+        }
     }
     cmd .= " --max-overall-download-limit=" . CurrentSpeedLimit
     cmd .= " --max-download-limit=" . CurrentSpeedLimit
@@ -526,7 +556,7 @@ CheckKillAria2()
 {
     If ProcessExist("aria2c.exe") != 0
         SaveSession()
-        ProcessClose("aria2c.exe")
+    ProcessClose("aria2c.exe")
     return
 }
 
@@ -569,8 +599,9 @@ InitialLanguage(*) {
     global lGuiUriInputBtnOK := IniRead(LANG_PATH, "GuiUriInput", "btnok")
     global lGuiUriInputBtnCancel := IniRead(LANG_PATH, "GuiUriInput", "btncancel")
     global lGuiUriInputTitle := IniRead(LANG_PATH, "GuiUriInput", "title")
-    
+
     global lMsgProxyError := IniRead(LANG_PATH, "Msg", "proxyerror")
+    global lMsgPathError := IniRead(LANG_PATH, "Msg", "patherror")
     return
 }
 
