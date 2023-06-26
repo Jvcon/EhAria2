@@ -23,7 +23,7 @@ CONF_Path := ".\EhAria2.ini"
 CONF := ConfMan.GetConf(CONF_Path)
 CONF.Setting := {
     Language: "en_us"
-    , Aria2Path: "C:/Users/Jacques/scoop/apps/aria2/current"
+    , Aria2Path: "C://path/to/aria2"
     , Aria2ConfigPath: ""
     , Aria2Config: "aria2.conf"
     , Aria2RpcPort: 6800
@@ -427,6 +427,7 @@ SwitchProxyStatus(*) {
         else{
             Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"all-proxy":""}]}'
         }
+        HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
     } else {
         If (!(CONF.Setting.Aria2Proxy = "")){
             CONF.Setting.Aria2ProxyEnable := 1
@@ -436,14 +437,13 @@ SwitchProxyStatus(*) {
             else{
                 Aria2GlobalOptionData:= '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":["token:' . CONF.Setting.Aria2RpcSecret . '",`{"all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
             }
+            HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
         }
         else {
             MsgBox lMsgProxyError
         }
-
     }
     CONF.WriteFile()
-    HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
     InitialProxy()
     return
 }
