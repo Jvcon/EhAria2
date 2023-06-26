@@ -8,7 +8,7 @@ $command = $ahk2exe + " /silent verbose " + " /base " + $ahk64base + " /out  $cw
 $testcommand = $ahk2exe + " /silent verbose " + " /base " + $ahk64base + " /out  $cwd\test\"
 $version = $args[0]
 $env = $args[1]
-$setversion = ";@Ahk2Exe-SetVersion " + $args
+$setversion = ";@Ahk2Exe-SetVersion " + $version
 Write-Host "Version:" $version
 Write-Host "Environment:" $env
 
