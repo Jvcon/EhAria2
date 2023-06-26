@@ -23,7 +23,7 @@ CONF_Path := ".\EhAria2.ini"
 CONF := ConfMan.GetConf(CONF_Path)
 CONF.Setting := {
     Language: "en_us"
-    , Aria2Path: "C://path/to/aria2"
+    , Aria2Path: "C:/path/to/aria2"
     , Aria2ConfigPath: ""
     , Aria2Config: "aria2.conf"
     , Aria2RpcPort: 6800
