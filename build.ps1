@@ -12,12 +12,18 @@ $setversion = ";@Ahk2Exe-SetVersion " + $args
 Write-Host "Version:" $version
 Write-Host "Environment:" $env
 
+if ($env -eq 'version') {
+    Get-ChildItem “$cwd\*.ahk” | ForEach-Object {
+        (Get-Content $_) | ForEach-Object { $_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
+    }   
+}
+
 if ($env -eq 'prod') {
     if (!(Test-Path -Path "$cwd\build")) {
         mkdir $cwd\build
     }
     Get-ChildItem “$cwd\*.ahk” | ForEach-Object {
-        (Get-Content $_) | ForEach-Object  {$_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
+        (Get-Content $_) | ForEach-Object { $_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
     }
 
     foreach ($file in (Get-ChildItem -Path $cwd\*.ahk)) {
