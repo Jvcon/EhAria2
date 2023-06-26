@@ -33,15 +33,15 @@ if ($env -eq 'prod') {
             Start-Sleep 1
         }
     }
-    if ((Test-Path -Path "$cwd\build\checksums_v$args.txt")) {
-        Remove-Item -Path $cwd\build\checksums_v$args.txt
+    if ((Test-Path -Path "$cwd\build\checksums_v$version.txt")) {
+        Remove-Item -Path $cwd\build\checksums_v$version.txt
     }
-    if ((Test-Path -Path "$cwd\build\EhAria2_v$args.zip")) {
-        Remove-Item -Force -Path $cwd\build\EhAria2_v$args.zip
+    if ((Test-Path -Path "$cwd\build\EhAria2_v$version.zip")) {
+        Remove-Item -Force -Path $cwd\build\EhAria2_v$version.zip
     }
-    Compress-Archive -Path .\build\*.exe -DestinationPath .\build\EhAria2_v$args.zip
-    $value = (Get-FileHash -Path .\build\EhAria2_v$args.zip -Algorithm SHA256).Hash + "  EhAria2_v$args.zip"
-    Tee-Object -Append -InputObject $value -FilePath $cwd\build\checksums_v$args.txt
+    Compress-Archive -Path .\build\*.exe -DestinationPath .\build\EhAria2_v$version.zip
+    $value = (Get-FileHash -Path .\build\EhAria2_v$version.zip -Algorithm SHA256).Hash + "  EhAria2_v$version.zip"
+    Tee-Object -Append -InputObject $value -FilePath $cwd\build\checksums_v$version.txt
     
     foreach ($file in (Get-ChildItem -Path $cwd\build\*.exe)) {
         Invoke-Expression("Remove-Item -Force -Path $file")
