@@ -25,15 +25,17 @@ Persistent
 
 CONF_Path := ".\EhAria2.ini"
 CONF := ConfMan.GetConf(CONF_Path)
-CONF.Setting := {
+CONF.Basic := {
     Language: "en_us"
     , Aria2Version: ""
     , Aria2Path: ""
     , Aria2ConfigPath: ""
     , Aria2Config: "aria2.conf"
-    , Aria2RpcPort: 6800
-    , Aria2RpcSecret: ""
     , Aria2ProxyEnable: 0
+}
+CONF.Setting := {
+      Aria2RpcPort: 6800
+    , Aria2RpcSecret: ""
     , Aria2Proxy: ""
     , BTTrackersList: "https://cf.trackerslist.com/best.txt"
     , BTTrackers: ""
@@ -93,7 +95,7 @@ else {
 }
 
 
-If (CONF.Setting.Aria2Path = "") {
+If (CONF.Basic.Aria2Path = "") {
     if (FileExist(A_ScriptDir . '\aria2c.exe')) {
         CheckUpdateAria2()
     }
@@ -117,7 +119,7 @@ If (CONF.Setting.Aria2Path = "") {
     }
 }
 else {
-    if (FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')) {
+    if (FileExist(CONF.Basic.Aria2Path . '\aria2c.exe')) {
     }
     else {
         isCustom := MsgBox(lMsgCustomReselect, lMsgCustomNotFoundTitle, "R/N T5")
@@ -125,7 +127,7 @@ else {
             SelectPath()
         }
         else {
-            CONF.Setting.Aria2Path := ""
+            CONF.Basic.Aria2Path := ""
             CONF.WriteFile()
             InstallAria2()
         }
@@ -213,7 +215,7 @@ CreateLangMenu(*) {
         SplitPath A_LoopFileName, , , , &FileNameNoExt
         LangMenu.Add(FileNameNoExt, SwitchLanguage)
     }
-    LangMenu.Check(CONF.Setting.Language)
+    LangMenu.Check(CONF.Basic.Language)
     return
 }
 
@@ -281,7 +283,7 @@ AddTaskMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
 AddTask(uri := "", profile := "", proxy := "") {
 
     if (proxy = "") {
-        proxy := CONF.Setting.Aria2ProxyEnable
+        proxy := CONF.Basic.Aria2ProxyEnable
     }
 
     if (profile = "") {
@@ -461,8 +463,8 @@ SwitchProfile(ItemName := 0, ItemPos := 0, MyMenu := 0) {
 }
 
 SwitchProxyStatus(*) {
-    If (CONF.Setting.Aria2ProxyEnable = 1) {
-        CONF.Setting.Aria2ProxyEnable := 0
+    If (CONF.Basic.Aria2ProxyEnable = 1) {
+        CONF.Basic.Aria2ProxyEnable := 0
         if (CONF.Setting.Aria2RpcSecret = "") {
             Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"all-proxy":""}]}'
         }
@@ -472,7 +474,7 @@ SwitchProxyStatus(*) {
         HttpPost(Aria2RpcUrl, Aria2GlobalOptionData)
     } else {
         If (!(CONF.Setting.Aria2Proxy = "")) {
-            CONF.Setting.Aria2ProxyEnable := 1
+            CONF.Basic.Aria2ProxyEnable := 1
             if (CONF.Setting.Aria2RpcSecret = "") {
                 Aria2GlobalOptionData := '{"jsonrpc":"2.0","id":"1","method":"aria2.changeGlobalOption","params":[{"all-proxy":"' . CONF.Setting.Aria2Proxy . '"}]}'
             }
@@ -491,7 +493,7 @@ SwitchProxyStatus(*) {
 }
 
 InitialProxy(*) {
-    If (CONF.Setting.Aria2ProxyEnable = 1) {
+    If (CONF.Basic.Aria2ProxyEnable = 1) {
         If (!(CONF.Setting.Aria2Proxy = "")) {
             EhAria2Tray.Check(lTrayEnableProxy)
         }
@@ -513,7 +515,7 @@ SelectPath(*) {
     }
     else {
         if (FileExist(aira2selectpath . '\aria2c.exe')) {
-            CONF.Setting.Aria2Path := aira2selectpath
+            CONF.Basic.Aria2Path := aira2selectpath
             CONF.WriteFile()
         }
         else {
@@ -542,17 +544,17 @@ UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
 }
 
 StartAria2(*) {
-    If (CONF.Setting.Aria2Path = "") {
+    If (CONF.Basic.Aria2Path = "") {
         cmd := A_ScriptDir . "\aria2c.exe"
     }
     else {
-        cmd := CONF.Setting.Aria2Path . '\aria2c.exe'
+        cmd := CONF.Basic.Aria2Path . '\aria2c.exe'
     }
-    If (CONF.Setting.Aria2ConfigPath = "") {
-        cmd .= " --conf-path=" A_ScriptDir . "\" . CONF.Setting.Aria2Config
+    If (CONF.Basic.Aria2ConfigPath = "") {
+        cmd .= " --conf-path=" A_ScriptDir . "\" . CONF.Basic.Aria2Config
     }
     else {
-        cmd .= " --conf-path=" CONF.Setting.Aria2ConfigPath . "\" . CONF.Setting.Aria2Config
+        cmd .= " --conf-path=" CONF.Basic.Aria2ConfigPath . "\" . CONF.Basic.Aria2Config
     }
     If (CONF.Setting.Aria2SessionPath = "") {
         cmd .= " --input-file=" A_ScriptDir . "\aria2.session"
@@ -571,7 +573,7 @@ StartAria2(*) {
     If (CONF.Setting.Aria2RpcSecret != "") {
         cmd .= " --rpc-secret=" CONF.Setting.Aria2RpcSecret
     }
-    If (CONF.Setting.Aria2ProxyEnable = 1) {
+    If (CONF.Basic.Aria2ProxyEnable = 1) {
         If (!(CONF.Setting.Aria2Proxy = "")) {
             cmd .= " --all-proxy=`"" CONF.Setting.Aria2Proxy "`""
         }
@@ -599,7 +601,7 @@ RestartAria2(*) {
 }
 
 SwitchLanguage(ItemName, ItemPos, MyMenu) {
-    CONF.Setting.Language := ItemName
+    CONF.Basic.Language := ItemName
     CONF.WriteFile()
     InitialLanguage()
     CreateTrayMenu()
@@ -610,9 +612,9 @@ SwitchLanguage(ItemName, ItemPos, MyMenu) {
 CheckUpdateAria2(*) {
     Aria2Repo := Github("aria2", "aria2")
     Aria2LatestVersion := Aria2Repo.Version
-    if (CONF.Setting.Aria2Version != Aria2LatestVersion) {
+    if (CONF.Basic.Aria2Version != Aria2LatestVersion) {
         InstallAria2()
-        CONF.Setting.Aria2Version := Aria2LatestVersion
+        CONF.Basic.Aria2Version := Aria2LatestVersion
         CONF.WriteFile()
     }
     return
@@ -639,13 +641,13 @@ InstallAria2(*) {
             DirDelete A_ScriptDir "\temp", 1
             FileDelete A_ScriptDir "\release.zip"
         }
-    CONF.Setting.Aria2Version := Aria2LatestVersion
+    CONF.Basic.Aria2Version := Aria2LatestVersion
     CONF.WriteFile()
     return
 }
 
 InitialLanguage(*) {
-    LANG_PATH := A_ScriptDir "\lang\" CONF.Setting.Language ".ini"
+    LANG_PATH := A_ScriptDir "\lang\" CONF.Basic.Language ".ini"
 
     global lTrayExit := IniRead(LANG_PATH, "Tray", "exit")
     global lTrayRestart := IniRead(LANG_PATH, "Tray", "restart")

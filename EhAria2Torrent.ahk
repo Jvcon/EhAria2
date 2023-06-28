@@ -15,7 +15,7 @@
 FileEncoding "UTF-8-RAW"
 
 CONF_Path := ".\EhAria2.ini"
-Global Language:= IniRead(CONF_Path,"Setting","Language")
+Global Language:= IniRead(CONF_Path,"Basic","Language")
 
 LANG_PATH := A_ScriptDir "\lang\" Language ".ini"
 Global lGuiSelectTorrentTitle:= IniRead(LANG_PATH,"GuiTorrent", "title")
