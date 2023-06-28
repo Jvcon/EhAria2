@@ -11,6 +11,10 @@
 #Include <ConfMan>
 #Include <WebView2>
 #Include <WindowsTheme>
+#Include <Github>
+#Include <WinHttpRequest>
+#Include <Jxon>
+#Include <DownloadAsync>
 
 #Requires AutoHotkey >=v2.0
 #SingleInstance force
@@ -23,7 +27,8 @@ CONF_Path := ".\EhAria2.ini"
 CONF := ConfMan.GetConf(CONF_Path)
 CONF.Setting := {
     Language: "en_us"
-    , Aria2Path: "C:/path/to/aria2"
+    , Aria2Version: ""
+    , Aria2Path: ""
     , Aria2ConfigPath: ""
     , Aria2Config: "aria2.conf"
     , Aria2RpcPort: 6800
@@ -75,6 +80,9 @@ If (A_IsCompiled = 1) {
     FileInstall("index.html", "index.html", 1)
     FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 }
+
+InitialLanguage()
+
 If (!FileExist(A_ScriptDir . "\aria2.conf")) {
     FileInstall("aria2.conf", "aria2.conf")
 }
@@ -84,18 +92,43 @@ else {
     }
 }
 
+
 If (CONF.Setting.Aria2Path = "") {
     if (FileExist(A_ScriptDir . '\aria2c.exe')) {
+        CheckUpdateAria2()
     }
     else {
-        SelectPath()
+        isIntegrated := MsgBox(lMsgItergratedDownload, lMsgNotFoundTitle, "Y/N T5")
+        if (isIntegrated = "Yes") {
+            InstallAria2()
+        }
+        else if (isIntegrated = "Timeout"){
+            InstallAria2()
+        }
+        else if (isIntegrated = "No") {
+            isCustom := MsgBox(lMsgCustomSelect, lMsgCustomNotFoundTitle, "Y/N")
+            if (isCustom = "Yes") {
+                SelectPath()
+            }
+            else {
+                MsgBox(lMsgPathError,"O T5")
+            }
+        }
     }
 }
 else {
     if (FileExist(CONF.Setting.Aria2Path . '\aria2c.exe')) {
     }
     else {
-        SelectPath()
+        isCustom := MsgBox(lMsgCustomReselect, lMsgCustomNotFoundTitle, "R/N T5")
+        if (isCustom = "RETRY") {
+            SelectPath()
+        }
+        else {
+            CONF.Setting.Aria2Path := ""
+            CONF.WriteFile()
+            InstallAria2()
+        }
     }
 }
 
@@ -130,7 +163,6 @@ global LangMenu := Menu()
 
 WindowsTheme.SetAppMode(!sysThemeMode)
 
-InitialLanguage()
 CreateTrayMenu()
 CreateLangMenu()
 CreateProfileMenu()
@@ -474,9 +506,9 @@ InitialProxy(*) {
 
 
 SelectPath(*) {
-    aira2selectpath := DirSelect(, 0, 'Location of aria2c')
+    aira2selectpath := DirSelect(, 0, lMsgSelectPathTitle)
     if (aira2selectpath = "") {
-        MsgBox lMsgPathError
+        MsgBox(lMsgPathError,"O T5")
         ExitTray()
     }
     else {
@@ -485,7 +517,7 @@ SelectPath(*) {
             CONF.WriteFile()
         }
         else {
-            MsgBox lMsgPathError
+            MsgBox(lMsgPathError,"O T5")
             ExitTray()
         }
     }
@@ -556,7 +588,7 @@ CheckKillAria2()
 {
     If ProcessExist("aria2c.exe") != 0
         SaveSession()
-    ProcessClose("aria2c.exe")
+        ProcessClose("aria2c.exe")
     return
 }
 
@@ -572,6 +604,43 @@ SwitchLanguage(ItemName, ItemPos, MyMenu) {
     InitialLanguage()
     CreateTrayMenu()
     CreateLangMenu()
+    return
+}
+
+CheckUpdateAria2(*) {
+    Aria2Repo := Github("aria2", "aria2")
+    Aria2LatestVersion := Aria2Repo.Version
+    if (CONF.Setting.Aria2Version != Aria2LatestVersion) {
+        InstallAria2()
+        CONF.Setting.Aria2Version := Aria2LatestVersion
+        CONF.WriteFile()
+    }
+    return
+}
+
+InstallAria2(*) {
+    try DirDelete A_ScriptDir "\temp", 1
+    try FileDelete A_ScriptDir "\release.zip"
+    Aria2Repo := Github("aria2", "aria2")
+    Aria2LatestVersion := Aria2Repo.Version
+    DownloadUrl := Aria2Repo.searchReleases("win-64bit")
+    Aria2Repo.Download(A_ScriptDir "\release.zip", DownloadUrl)
+    psExpandArchiveScript := "
+        (
+            param($src, $dest)
+            Expand-Archive -Path $src -DestinationPath $dest
+        )"
+    src := "release.zip"
+    dest := A_ScriptDir "\temp"
+    RunWait("PowerShell.exe -Command &{" psExpandArchiveScript "} '" src "' '" dest "'", , "hide")
+    loop files, A_ScriptDir "\temp\*.exe", "FR"
+        if (InStr(A_LoopFileFullPath, "aria2c.exe")) {
+            FileCopy A_LoopFileFullPath, A_ScriptDir "\aria2c.exe", true
+            DirDelete A_ScriptDir "\temp", 1
+            FileDelete A_ScriptDir "\release.zip"
+        }
+    CONF.Setting.Aria2Version := Aria2LatestVersion
+    CONF.WriteFile()
     return
 }
 
@@ -602,6 +671,13 @@ InitialLanguage(*) {
 
     global lMsgProxyError := IniRead(LANG_PATH, "Msg", "proxyerror")
     global lMsgPathError := IniRead(LANG_PATH, "Msg", "patherror")
+    global lMsgNotFoundTitle := IniRead(LANG_PATH, "Msg", "notfoundtitle")
+    global lMsgCustomNotFoundTitle := IniRead(LANG_PATH, "Msg", "customnotfoundtitle")
+    global lMsgItergratedDownload := IniRead(LANG_PATH, "Msg", "integrateddownload")
+    global lMsgCustomSelect := IniRead(LANG_PATH, "Msg", "customselect")
+    global lMsgCustomReselect := IniRead(LANG_PATH, "Msg", "customreselect")
+    global lMsgSelectPathTitle := IniRead(LANG_PATH, "Msg", "selectpathtitle")
+
     return
 }
 

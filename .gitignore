@@ -1,7 +1,10 @@
 # Autohotkey
 /build
 /test
+/temp
 *.session
+release.zip
+aria2c.exe
 EhAria2.ini
 
 # Logs
