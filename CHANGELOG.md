@@ -1,4 +1,9 @@
-# [](https://github.com/Jvcon/EhAria2/compare/v0.1.0...v) (2023-06-29)
+## [0.1.1](https://github.com/Jvcon/EhAria2/compare/v0.1.0...v0.1.1) (2023-06-29)
+
+
+### Bug Fixes
+
+* **eharia2.ahk:** fix dht path ([cb60067](https://github.com/Jvcon/EhAria2/commit/cb600676e73251cf2d76bf87094481424456d0d3))
 
 
 

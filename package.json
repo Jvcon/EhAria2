@@ -7,7 +7,7 @@
         "start": "nodemon --exec EhAria2.ahk",
         "build": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./build.ps1 %npm_package_version% prod %npm_package_name%",
         "test": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./build.ps1 %npm_package_version% dev %npm_package_name%",
-        "version": "conventional-changelog -p angular -i CHANGELOG.md -s && @powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./build.ps1 %npm_package_version% version %npm_package_name%"
+        "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && @powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./build.ps1 %npm_package_version% version %npm_package_name%"
     },
     "nodemonConfig": {
         "ignore": [
