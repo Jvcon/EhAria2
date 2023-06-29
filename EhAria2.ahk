@@ -554,20 +554,25 @@ UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
 
 InitialDHT(ItemName := 0, ItemPos := 0, MyMenu := 0){
     if (CONF.Setting.Aria2DhtPath=""){
-        if !(FileExist(A_Temp . "\EhAria2\" . "dht.dat")){
-            DownloadDHT("dht.dat")    
+        if !(FileExist(A_ScriptDir . "\" . "dht.dat")){
+            DownloadDHT()    
         }
-        if !(FileExist(A_Temp . "\EhAria2\" . "dht6.dat")){
-            DownloadDHT("dht6.dat")    
+        if !(FileExist(A_ScriptDir . "\" . "dht6.dat")){
+            DownloadDHT()    
         }
     }
     else{
-
+        if !(FileExist(CONF.Setting.Aria2DhtPath . "\" . "dht.dat")){
+            DownloadDHT(CONF.Setting.Aria2DhtPath . "\", "dht.dat")    
+        }
+        if !(FileExist(CONF.Setting.Aria2DhtPath . "\" . "dht6.dat")){
+            DownloadDHT(CONF.Setting.Aria2DhtPath . "\", "dht6.dat")    
+        }
     }
     return
 }
 
-DownloadDHT( path:= A_Temp . "\EhAria2\", filename := "dht.dat"){
+DownloadDHT( path:= A_ScriptDir . "\", filename := "dht.dat"){
     try {
         Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
     }
@@ -635,7 +640,7 @@ StartAria2(*) {
             cmd .= " --dht-file-path=" . CONF.Setting.Aria2DhtPath . "\dht.dat"
         }
         else {
-            cmd .= " --dht-file-path=" . A_Temp . "\EhAria2\dht.dat"
+            cmd .= " --dht-file-path=" . A_ScriptDir . "\dht.dat"
         }
     }
     If (CONF.Basic.Aria2Dht6Enable = 1 ){
@@ -644,7 +649,7 @@ StartAria2(*) {
             cmd .= " --dht-file-path6=" . CONF.Setting.Aria2DhtPath . "\dht6.dat"
         }
         else {
-            cmd .= " --dht-file-path6=" . A_Temp . "\EhAria2\dht.dat"
+            cmd .= " --dht-file-path6=" . A_ScriptDir . "\dht6.dat"
         }
     }
     Run cmd, , "Hide"
