@@ -32,6 +32,8 @@ CONF.Basic := {
     , Aria2ConfigPath: ""
     , Aria2Config: "aria2.conf"
     , Aria2ProxyEnable: 0
+    , Aria2DhtEnable: 1
+    , Aria2Dht6Enable: 0
 }
 CONF.Setting := {
       Aria2RpcPort: 6800
@@ -40,6 +42,9 @@ CONF.Setting := {
     , BTTrackersList: "https://cf.trackerslist.com/best.txt"
     , BTTrackers: ""
     , Aria2SessionPath: ""
+    , Aria2DhtPath: ""
+    , Aria2DhtListenPort: 51413
+    , Aria2ListenPort: 51413
 }
 CONF.Profile := {
     CurrentProfile: 1
@@ -143,6 +148,10 @@ else {
     If (!FileExist(CONF.Setting.Aria2SessionPath . "\aria2.session")) {
         FileAppend "", CONF.Setting.Aria2SessionPath . "\aria2.session"
     }
+}
+
+If (CONF.Basic.Aria2DhtEnable = 1 | CONF.Basic.Aria2Dht6Enable = 1){
+    InitialDHT()
 }
 
 Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
@@ -543,6 +552,39 @@ UpdateBTTracker(ItemName := 0, ItemPos := 0, MyMenu := 0)
     return
 }
 
+InitialDHT(ItemName := 0, ItemPos := 0, MyMenu := 0){
+    if (CONF.Setting.Aria2DhtPath=""){
+        if !(FileExist(A_Temp . "\EhAria2\" . "dht.dat")){
+            DownloadDHT("dht.dat")    
+        }
+        if !(FileExist(A_Temp . "\EhAria2\" . "dht6.dat")){
+            DownloadDHT("dht6.dat")    
+        }
+    }
+    else{
+
+    }
+    return
+}
+
+DownloadDHT( path:= A_Temp . "\EhAria2\", filename := "dht.dat"){
+    try {
+        Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
+    }
+    catch as error{
+        downloadError := MsgBox(error,, "RC Default2 T5")
+        if (downloadError = "Cancel"){
+            FileAppend "", A_ScriptDir . "\" . filename
+        }
+        else if (downloadError = "Retry"){
+            Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
+        }
+        else if (downloadError = "Timeout"){
+            Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename   
+        }
+    }
+}
+
 StartAria2(*) {
     If (CONF.Basic.Aria2Path = "") {
         cmd := A_ScriptDir . "\aria2c.exe"
@@ -564,6 +606,9 @@ StartAria2(*) {
         cmd .= " --input-file=" CONF.Setting.Aria2SessionPath . "\aria2.session"
         cmd .= " --save-session=" CONF.Setting.Aria2SessionPath . "\aria2.session"
     }
+    cmd .= " --enable-rpc=true"
+    cmd .= " --rpc-allow-origin-all=true"
+    cmd .= " --rpc-listen-all=true"
     If (CONF.Setting.Aria2RpcPort != "") {
         cmd .= " --rpc-listen-port=" CONF.Setting.Aria2RpcPort
     }
@@ -582,6 +627,26 @@ StartAria2(*) {
     cmd .= " --max-download-limit=" . CurrentSpeedLimit
     cmd .= " --dir=" . CurrentProfilePath
     cmd .= " --bt-tracker=" . CONF.Setting.BTTrackers
+    cmd .= " --listen-port=" . CONF.Setting.Aria2ListenPort
+    cmd .= " --dht-listen-port=" . CONF.Setting.Aria2DhtListenPort
+    If (CONF.Basic.Aria2DhtEnable = 1 ){
+        cmd .= " --enable-dht=true"
+        If (!(CONF.Setting.Aria2DhtPath = "")){
+            cmd .= " --dht-file-path=" . CONF.Setting.Aria2DhtPath . "\dht.dat"
+        }
+        else {
+            cmd .= " --dht-file-path=" . A_Temp . "\EhAria2\dht.dat"
+        }
+    }
+    If (CONF.Basic.Aria2Dht6Enable = 1 ){
+        cmd .= " --enable-dht6=true"
+        If (!(CONF.Setting.Aria2DhtPath = "")){
+            cmd .= " --dht-file-path6=" . CONF.Setting.Aria2DhtPath . "\dht6.dat"
+        }
+        else {
+            cmd .= " --dht-file-path6=" . A_Temp . "\EhAria2\dht.dat"
+        }
+    }
     Run cmd, , "Hide"
     return
 }
