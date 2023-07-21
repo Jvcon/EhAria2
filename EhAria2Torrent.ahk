@@ -11,54 +11,53 @@
 #Requires AutoHotkey >=v2.0
 #SingleInstance force
 #NoTrayIcon
-
+#Include <Aria2Rpc>
 FileEncoding "UTF-8-RAW"
 
 CONF_Path := ".\EhAria2.ini"
-Global Language:= IniRead(CONF_Path,"Basic","Language")
+Global Language := IniRead(CONF_Path, "Basic", "Language")
 
 LANG_PATH := A_ScriptDir "\lang\" Language ".ini"
-Global lGuiSelectTorrentTitle:= IniRead(LANG_PATH,"GuiTorrent", "title")
-Global lGuiSelectTorrentExt:= IniRead(LANG_PATH,"GuiTorrent", "ext" )
+Global lGuiSelectTorrentTitle := IniRead(LANG_PATH, "GuiTorrent", "title")
+Global lGuiSelectTorrentExt := IniRead(LANG_PATH, "GuiTorrent", "ext")
 
 Global Aria2RpcPort := IniRead(CONF_Path, "Setting", "Aria2RpcPort")
-Global Aria2RpcUrl := 'http://127.0.0.1:' . Aria2RpcPort . '/jsonrpc'
-
 Global Aria2RpcSecret := IniRead(CONF_Path, "Setting", "Aria2RpcSecret")
+Global Aria2ProxyEnable := IniRead(CONF_Path, "Basic", "Aria2ProxyEnable")
+Global Aria2Proxy := IniRead(CONF_Path, "Setting", "Aria2Proxy")
+Aria2 := Aria2Rpc("EhAria2", "http://127.0.0.1", Aria2RpcPort, Aria2RpcSecret)
 
-If ProcessExist("aria2c.exe") = 0
-    Run A_ScriptDir . "\EhAria2Ahk.exe"
+If ((Aria2ProxyEnable = 1) and (Aria2Proxy != "")) {
+    Aria2.__Init(Aria2Proxy)
+}
+
+If (ProcessExist("aria2c.exe") = 0) {
+    If (A_IsCompiled = 1) {
+        Run A_ScriptDir . "\EhAria2.exe"
+    }
+    else {
+        Run A_ScriptDir . "\EhAria2.ahk"
+    }
+}
 
 If (A_Args.Has(1) = True)
 {
     Global TorrentPN := A_Args[1]
-} Else {
+}
+else {
     Global TorrentPN := FileSelect(, , lGuiSelectTorrentTitle, lGuiSelectTorrentExt " (*.torrent)")
     If TorrentPN = ""
         Exitapp
 }
 
-RunWait A_ComSpec " /c certutil.exe -encode " . TorrentPN . " Temp.txt", ,"Hide"
-TorrentText := FileRead("Temp.txt")
-TorrentText := StrReplace(TorrentText, "-----BEGIN CERTIFICATE-----" , "")
-TorrentText := StrReplace(TorrentText, "-----END CERTIFICATE-----" , "")
-TorrentText := StrReplace(TorrentText, "`n" , "")
-if (Aria2RpcSecret= ""){
-    Aria2AddTorrnetData := '`{"jsonrpc":"2.0","id":"1","method":"aria2.addTorrent","params":["' . TorrentText . '"]}'
+If (A_Args.Has(2) = True) {
+    Global proxy := A_Args[2]
 }
 else {
-    Aria2AddTorrnetData := '`{"jsonrpc":"2.0","id":"1","method":"aria2.addTorrent","params":["token:' . Aria2RpcSecret . '","' . TorrentText . '"]}'
+    Global proxy := 0
 }
 
-HttpPost(Aria2RpcUrl, Aria2AddTorrnetData)
-FileDelete "Temp.txt"
+
+Aria2.addTorrent(TorrentPN, , proxy)
 Exitapp
 Return
-
-HttpPost(URL, PData) {
-	Static WebRequest := ComObject("WinHttp.WinHttpRequest.5.1")
-	WebRequest.Open("POST", URL, True)
-	WebRequest.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-	WebRequest.Send(PData)
-	WebRequest.WaitForResponse(-1)
-}

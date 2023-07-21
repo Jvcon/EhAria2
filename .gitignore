@@ -3,6 +3,7 @@
 /test
 /temp
 *.session
+*.dat
 release.zip
 aria2c.exe
 EhAria2.ini
