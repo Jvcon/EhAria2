@@ -16,6 +16,7 @@
 #Include <Jxon>
 #Include <DownloadAsync>
 #Include <Aria2Rpc>
+#Include <i18n>
 
 #Requires AutoHotkey >=v2.0
 #SingleInstance force
@@ -660,38 +661,38 @@ InstallAria2(*) {
 }
 
 InitialLanguage(*) {
-    LANG_PATH := A_ScriptDir "\lang\" CONF.Basic.Language ".ini"
+    global Language := i18n("lang",CONF.Basic.Language, !A_IsCompiled )
+    
+    global lTrayExit := Language.Translate("Tray", "exit")
+    global lTrayRestart := Language.Translate("Tray", "restart")
+    global lTrayOpenFolder := Language.Translate("Tray", "openfolder")
+    global lTrayOpenAriang := Language.Translate("Tray", "openariang")
 
-    global lTrayExit := IniRead(LANG_PATH, "Tray", "exit")
-    global lTrayRestart := IniRead(LANG_PATH, "Tray", "restart")
-    global lTrayOpenFolder := IniRead(LANG_PATH, "Tray", "openfolder")
-    global lTrayOpenAriang := IniRead(LANG_PATH, "Tray", "openariang")
+    global lTrayLang := Language.Translate("Tray", "lang")
+    global lTraySpeedLimit := Language.Translate("Tray", "speedlimit")
+    global lTrayProfile := Language.Translate("Tray", "profile")
+    global lTrayEnableProxy := Language.Translate("Tray", "enableproxy")
+    global lTrayUpdateTrackerList := Language.Translate("Tray", "updatetracker")
 
-    global lTrayLang := IniRead(LANG_PATH, "Tray", "lang")
-    global lTraySpeedLimit := IniRead(LANG_PATH, "Tray", "speedlimit")
-    global lTrayProfile := IniRead(LANG_PATH, "Tray", "profile")
-    global lTrayEnableProxy := IniRead(LANG_PATH, "Tray", "enableproxy")
-    global lTrayUpdateTrackerList := IniRead(LANG_PATH, "Tray", "updatetracker")
+    global lTrayAddTorrentTo := Language.Translate("Tray", "addtorrentto")
+    global lTrayAddTaskProxyTo := Language.Translate("Tray", "addtaskproxyto")
+    global lTrayAddTaskTo := Language.Translate("Tray", "addtaskto")
+    global lTrayAddTorrent := Language.Translate("Tray", "addtorrent")
+    global lTrayAddTask := Language.Translate("Tray", "addtask")
 
-    global lTrayAddTorrentTo := IniRead(LANG_PATH, "Tray", "addtorrentto")
-    global lTrayAddTaskProxyTo := IniRead(LANG_PATH, "Tray", "addtaskproxyto")
-    global lTrayAddTaskTo := IniRead(LANG_PATH, "Tray", "addtaskto")
-    global lTrayAddTorrent := IniRead(LANG_PATH, "Tray", "addtorrent")
-    global lTrayAddTask := IniRead(LANG_PATH, "Tray", "addstask")
+    global lGuiUriInputText := Language.Translate("GuiUriInput", "text")
+    global lGuiUriInputBtnOK := Language.Translate("GuiUriInput", "btnok")
+    global lGuiUriInputBtnCancel := Language.Translate("GuiUriInput", "btncancel")
+    global lGuiUriInputTitle := Language.Translate("GuiUriInput", "title")
 
-    global lGuiUriInputText := IniRead(LANG_PATH, "GuiUriInput", "text")
-    global lGuiUriInputBtnOK := IniRead(LANG_PATH, "GuiUriInput", "btnok")
-    global lGuiUriInputBtnCancel := IniRead(LANG_PATH, "GuiUriInput", "btncancel")
-    global lGuiUriInputTitle := IniRead(LANG_PATH, "GuiUriInput", "title")
-
-    global lMsgProxyError := IniRead(LANG_PATH, "Msg", "proxyerror")
-    global lMsgPathError := IniRead(LANG_PATH, "Msg", "patherror")
-    global lMsgNotFoundTitle := IniRead(LANG_PATH, "Msg", "notfoundtitle")
-    global lMsgCustomNotFoundTitle := IniRead(LANG_PATH, "Msg", "customnotfoundtitle")
-    global lMsgItergratedDownload := IniRead(LANG_PATH, "Msg", "integrateddownload")
-    global lMsgCustomSelect := IniRead(LANG_PATH, "Msg", "customselect")
-    global lMsgCustomReselect := IniRead(LANG_PATH, "Msg", "customreselect")
-    global lMsgSelectPathTitle := IniRead(LANG_PATH, "Msg", "selectpathtitle")
+    global lMsgProxyError := Language.Translate("Msg", "proxyerror")
+    global lMsgPathError := Language.Translate("Msg", "patherror")
+    global lMsgNotFoundTitle := Language.Translate("Msg", "notfoundtitle")
+    global lMsgCustomNotFoundTitle := Language.Translate("Msg", "customnotfoundtitle")
+    global lMsgItergratedDownload := Language.Translate("Msg", "integrateddownload")
+    global lMsgCustomSelect := Language.Translate("Msg", "customselect")
+    global lMsgCustomReselect := Language.Translate("Msg", "customreselect")
+    global lMsgSelectPathTitle := Language.Translate("Msg", "selectpathtitle")
 
     return
 }
