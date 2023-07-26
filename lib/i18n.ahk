@@ -56,12 +56,11 @@ Class i18n {
                     return "{" key "}"
                 }
             }
-            ;check and replace args ({1}, {2}, ...)
-            If (args.Length > 0) {
-                MsgBox "Max"
-                Loop args.Length
-                    translatedText := this.ReplaceArgs(translatedText, args[A_Index], A_Index)
-            }
+        }
+        ;check and replace args ({1}, {2}, ...)
+        If (args.Length > 0) {
+            Loop args.Length
+                translatedText := this.ReplaceArgs(translatedText, args[A_Index], A_Index)
         }
         return translatedText
     }

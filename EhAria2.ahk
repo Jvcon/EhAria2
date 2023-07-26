@@ -36,6 +36,7 @@ CONF.Basic := {
     , Aria2ProxyEnable: 0
     , Aria2DhtEnable: 1
     , Aria2Dht6Enable: 0
+    , CheckUpdateOnStartup: 1
 }
 CONF.Setting := {
     Aria2RpcPort: 6800
@@ -103,10 +104,10 @@ else {
 
 
 If (CONF.Basic.Aria2Path = "") {
-    if (FileExist(A_ScriptDir . '\aria2c.exe')) {
+    if (FileExist(A_ScriptDir . '\aria2c.exe') and CONF.Basic.CheckUpdateOnStartup) {
         CheckUpdateAria2()
     }
-    else {
+    else if (!FileExist(A_ScriptDir . '\aria2c.exe')) {
         isIntegrated := MsgBox(lMsgItergratedDownload, lMsgNotFoundTitle, "Y/N T5")
         if (isIntegrated = "Yes") {
             InstallAria2()
@@ -175,7 +176,7 @@ Global LangMenu := Menu()
 WindowsTheme.SetAppMode(!sysThemeMode)
 
 Aria2 := Aria2Rpc("EhAria2", , CONF.Setting.Aria2RpcPort, CONF.Setting.Aria2RpcSecret)
-Aria2.__Init(,CurrentProfilePath,CurrentSpeedLimit)
+Aria2.__Init(, CurrentProfilePath, CurrentSpeedLimit)
 
 CreateTrayMenu()
 CreateLangMenu()
@@ -204,6 +205,7 @@ CreateTrayMenu(*) {
     EhAria2Tray.Add(lTrayProfile, SubMenuProflie)
     EhAria2Tray.Add(lTrayEnableProxy, SwitchProxyStatus)
     EhAria2Tray.Add(lTrayUpdateTrackerList, UpdateBTTracker)
+    EhAria2Tray.Add(lTrayUpdateAria2, UpdateAria2)
     EhAria2Tray.Add
     EhAria2Tray.Add(lTrayExit, ExitTray)
     EhAria2Tray.Add(lTrayRestart, RestartAria2)
@@ -423,18 +425,18 @@ SwitchProfile(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
     Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
     SubMenuProflie.ToggleCheck(CurrentProfileName)
-    Aria2.changeGlobalOption(,dir:=CurrentProfileName)
+    Aria2.changeGlobalOption(, dir := CurrentProfileName)
     return
 }
 
 SwitchProxyStatus(*) {
     If (CONF.Basic.Aria2ProxyEnable = 1) {
         CONF.Basic.Aria2ProxyEnable := 0
-        Aria2.changeGlobalOption(proxyUrl:="")
+        Aria2.changeGlobalOption(proxyUrl := "")
     } else {
         If (!(CONF.Setting.Aria2Proxy = "")) {
             CONF.Basic.Aria2ProxyEnable := 1
-            Aria2.changeGlobalOption(proxyUrl:=CONF.Setting.Aria2Proxy)
+            Aria2.changeGlobalOption(proxyUrl := CONF.Setting.Aria2Proxy)
         }
         else {
             MsgBox lMsgProxyError
@@ -623,13 +625,28 @@ SwitchLanguage(ItemName, ItemPos, MyMenu) {
     return
 }
 
+UpdateAria2(*) {
+    CheckUpdateAria2()
+    StartAria2()
+    return
+}
+
 CheckUpdateAria2(*) {
+    MonitorGetWorkArea("1", &Left, &Top, &Right, &Bottom)
+    ToolTip("Checking Version",Right , Bottom, 1)
     Aria2Repo := Github("aria2", "aria2")
     Aria2LatestVersion := Aria2Repo.Version
+    ToolTip(,,,1)
     if (CONF.Basic.Aria2Version != Aria2LatestVersion) {
+        CheckKillAria2()
         InstallAria2()
         CONF.Basic.Aria2Version := Aria2LatestVersion
         CONF.WriteFile()
+        ToolTip(,,,1)
+    }
+    else {
+        ToolTip(,,,1)
+        MsgBox lMsgVersionLatest
     }
     return
 }
@@ -657,12 +674,13 @@ InstallAria2(*) {
         }
     CONF.Basic.Aria2Version := Aria2LatestVersion
     CONF.WriteFile()
+    TrayTip(Language.Translate("Msg", "installsuccess", CONF.Basic.Aria2Version),,"20")
     return
 }
 
 InitialLanguage(*) {
-    global Language := i18n("lang",CONF.Basic.Language, !A_IsCompiled )
-    
+    global Language := i18n("lang", CONF.Basic.Language, !A_IsCompiled)
+
     global lTrayExit := Language.Translate("Tray", "exit")
     global lTrayRestart := Language.Translate("Tray", "restart")
     global lTrayOpenFolder := Language.Translate("Tray", "openfolder")
@@ -673,6 +691,7 @@ InitialLanguage(*) {
     global lTrayProfile := Language.Translate("Tray", "profile")
     global lTrayEnableProxy := Language.Translate("Tray", "enableproxy")
     global lTrayUpdateTrackerList := Language.Translate("Tray", "updatetracker")
+    global lTrayUpdateAria2 := Language.Translate("Tray", "updatearia2")
 
     global lTrayAddTorrentTo := Language.Translate("Tray", "addtorrentto")
     global lTrayAddTaskProxyTo := Language.Translate("Tray", "addtaskproxyto")
@@ -693,6 +712,8 @@ InitialLanguage(*) {
     global lMsgCustomSelect := Language.Translate("Msg", "customselect")
     global lMsgCustomReselect := Language.Translate("Msg", "customreselect")
     global lMsgSelectPathTitle := Language.Translate("Msg", "selectpathtitle")
+    global lMsgVersionLatest := Language.Translate("Msg", "latestversion")
+    global lMsgInstallSuccess := Language.Translate("Msg", "installsuccess", CONF.Basic.Aria2Version)
 
     return
 }
