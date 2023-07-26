@@ -72,8 +72,7 @@ class Aria2Rpc {
         params.Push(optGlobalObj)
         json["params"] := params
         data := Jxon_dump(json)
-        respone := this.httpPost(this.rpcUrl, data)
-        this.aria2ExecCallback(json["method"], respone)
+        respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
         return
     }
     saveSession(*) {
@@ -81,8 +80,7 @@ class Aria2Rpc {
         json["method"] := "aria2.saveSession"
         json["params"] := this.paramsArr
         data := Jxon_dump(json)
-        respone := this.httpPost(this.rpcUrl, data)
-        this.aria2ExecCallback(json["method"], respone)
+        respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
         return
     }
     addTorrent(torrent := "", dir?, proxy := 0) {
@@ -107,8 +105,7 @@ class Aria2Rpc {
         params.Push(optTaskObj)
         json["params"] := params
         data := Jxon_dump(json)
-        respone := this.httpPost(this.rpcUrl, data)
-        this.aria2ExecCallback(json["method"], respone)
+        respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
         FileDelete "temp.txt"
         return
     }
@@ -129,8 +126,7 @@ class Aria2Rpc {
         params.Push(optTaskObj)
         json["params"] := params
         data := Jxon_dump(json)
-        respone := this.httpPost(this.rpcUrl, data)
-        this.aria2ExecCallback(json["method"], respone)
+        respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
         return
     }
     addMetalink(uri := "", dir := "", proxy := 0) {
@@ -149,32 +145,33 @@ class Aria2Rpc {
         params.Push(optTaskObj)
         json["params"] := params
         data := Jxon_dump(json)
-        respone := this.httpPost(this.rpcUrl, data)
-        this.aria2ExecCallback(json["method"], respone)
+        respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
         return
     }
-    httpPost(URL, PData) {
+    httpPost(URL, PData,method:="") {
         Static WebRequest := ComObject("WinHttp.WinHttpRequest.5.1")
         WebRequest.Open("POST", URL, True)
         WebRequest.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
         WebRequest.Send(PData)
         WebRequest.WaitForResponse()
         response := WebRequest.ResponseText
+        this.aria2ExecCallback(method, WebRequest.ResponseText)
         return response ;Set the "text" variable to the response
     }
-    httpGet(URL) {
+    httpGet(URL,method:="") {
         Static WebRequest := ComObject("WinHttp.WinHttpRequest.5.1")
         WebRequest.Open("GET", URL)
         WebRequest.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
         WebRequest.Send()
         WebRequest.WaitForResponse()
         response := WebRequest.ResponseText
+        this.aria2ExecCallback(method, WebRequest.ResponseText)
         return response ;Set the "text" variable to the response
     }
-    aria2ExecCallback(funcName, respone) {
-        res := Jxon_Load(&respone)
+    aria2ExecCallback(funcName, response) {
+        res := Jxon_Load(&response)
         if (res.Has("error")) {
-            MsgBox ('Method: ' . funcName . '`n'
+            MsgBox ('Method: ' . StrSplit(funcName,".")[3] . '`n'
                 . 'Code: ' . res["error"]["code"] . '`n'
                 . 'Message: ' . res["error"]["message"] . '`n'),
                 "Aria2 RPC Error",
