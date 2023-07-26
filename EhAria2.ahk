@@ -451,6 +451,7 @@ UpdateProxyMenu(*) {
     If (CONF.Basic.Aria2ProxyEnable = 1) {
         If (!(CONF.Setting.Aria2Proxy = "")) {
             EhAria2Tray.Check(lTrayEnableProxy)
+            Aria2.__Init(CONF.Setting.Aria2Proxy)
         }
         else {
             MsgBox lMsgProxyError
