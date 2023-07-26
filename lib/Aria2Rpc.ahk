@@ -148,6 +148,16 @@ class Aria2Rpc {
         respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
         return
     }
+    tellStatus(taskGid){
+        json := this.jsonObj.Clone()
+        params := this.paramsArr.Clone()
+        json["method"] := "aria2.tellStatus"
+        params.Push(taskGid)
+        json["params"] := params
+        data := Jxon_dump(json)
+        respone := this.httpPost(this.rpcUrl, data,A_ThisFunc)
+        return
+    }
     httpPost(URL, PData,method:="") {
         Static WebRequest := ComObject("WinHttp.WinHttpRequest.5.1")
         WebRequest.Open("POST", URL, True)
