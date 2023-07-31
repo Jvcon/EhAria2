@@ -45,6 +45,7 @@ CONF.Setting := {
     , BTTrackersList: "https://cf.trackerslist.com/best.txt"
     , BTTrackers: ""
     , Aria2SessionPath: ""
+    , Aria2SessionInterval: 60
     , Aria2DhtPath: ""
     , Aria2DhtListenPort: 51413
     , Aria2ListenPort: 51413
@@ -67,10 +68,25 @@ CONF.Speed := {
     , SpeedName3: ""
     , SpeedLimit3: ""
 }
+CONF.Extension := {
+    CleanOnComplete: 1
+    , CleanOnError: 1
+    , CleanOnRemoved: 1
+    , CleanOnUnknown: 1
+    , DeleteDotAria2: 1
+    , DeleteDotTorrent: 1
+    , DeleteEmptyDir: 1
+    , DeleteExclude: 1
+    , ExcludeRegEx: "(.*/)_+(padding)(_*)(file)(.*)(_+)"
+    , ExcludeExt: "html|url|lnk|txt|jpg|png"
+    , IncludeRegEx: ""
+    , IncludeExt: "mp4|mkv|rmvb|mov|avi"
+}
 
 CONF.Setting.SetOpts("PARAMS")
 CONF.Profile.SetOpts("PARAMS")
 CONF.Speed.SetOpts("PARAMS")
+CONF.Extension.SetOpts("PARAMS")
 If !FileExist(CONF_Path) {
     FileAppend "", CONF_Path
 }
@@ -558,6 +574,7 @@ StartAria2(*) {
         cmd .= " --input-file=" CONF.Setting.Aria2SessionPath . "\aria2.session"
         cmd .= " --save-session=" CONF.Setting.Aria2SessionPath . "\aria2.session"
     }
+    cmd .= " --save-session-interval=" CONF.Setting.Aria2SessionInterval
     cmd .= " --enable-rpc=true"
     cmd .= " --rpc-allow-origin-all=true"
     cmd .= " --rpc-listen-all=true"
@@ -599,6 +616,14 @@ StartAria2(*) {
             cmd .= " --dht-file-path6=" . A_ScriptDir . "\dht6.dat"
         }
     }
+    If (A_IsCompiled = 1) {
+        cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extenstion.exe"
+        cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extenstion.exe"
+    }
+    else {
+        cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extenstion.ahk"
+        cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extenstion.ahk"
+    }
     Run cmd, , "Hide"
     return
 }
@@ -634,19 +659,19 @@ UpdateAria2(*) {
 
 CheckUpdateAria2(*) {
     MonitorGetWorkArea("1", &Left, &Top, &Right, &Bottom)
-    ToolTip("Checking Version",Right , Bottom, 1)
+    ToolTip("Checking Version", Right, Bottom, 1)
     Aria2Repo := Github("aria2", "aria2")
     Aria2LatestVersion := Aria2Repo.Version
-    ToolTip(,,,1)
+    ToolTip(, , , 1)
     if (CONF.Basic.Aria2Version != Aria2LatestVersion) {
         CheckKillAria2()
         InstallAria2()
         CONF.Basic.Aria2Version := Aria2LatestVersion
         CONF.WriteFile()
-        ToolTip(,,,1)
+        ToolTip(, , , 1)
     }
     else {
-        ToolTip(,,,1)
+        ToolTip(, , , 1)
         MsgBox lMsgVersionLatest
     }
     return
@@ -675,7 +700,7 @@ InstallAria2(*) {
         }
     CONF.Basic.Aria2Version := Aria2LatestVersion
     CONF.WriteFile()
-    TrayTip(Language.Translate("Msg", "installsuccess", CONF.Basic.Aria2Version),,"20")
+    TrayTip(Language.Translate("Msg", "installsuccess", CONF.Basic.Aria2Version), , "20")
     return
 }
 
