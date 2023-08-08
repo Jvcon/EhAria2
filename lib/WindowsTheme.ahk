@@ -77,7 +77,11 @@ class WindowsTheme {
         {
             switch GuiCtrlObj.Type
             {
-                case "Button", "CheckBox", "ListBox", "UpDown":
+                case "CheckBox":
+                    {
+
+                    }
+                case "Button", "ListBox", "UpDown":
                     {
                         DllCall("uxtheme\SetWindowTheme", "Ptr", GuiCtrlObj.hWnd, "Str", Mode_Explorer, "Ptr", 0)
                     }
