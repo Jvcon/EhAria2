@@ -1,3 +1,28 @@
+# [0.2.0](https://github.com/Jvcon/EhAria2/compare/v0.1.1...v0.2.0) (2023-08-09)
+
+
+### Bug Fixes
+
+* fixed Checkbox (Gui Control) Font Color Under Dark Mode ([404c115](https://github.com/Jvcon/EhAria2/commit/404c1159fd867cc88680ab030e1df91e47dd6529))
+* fixed intial proxy options in UpdateProxyMenu function ([639d98a](https://github.com/Jvcon/EhAria2/commit/639d98a002e83886bd9a179aa6ac81442c185e48))
+
+
+### Features
+
+* **/lib/aria2rpc.ahk:** add query task status (tellStatus) function ([8210377](https://github.com/Jvcon/EhAria2/commit/8210377b165db7060fab94288e943d8dc81fb596))
+* add Auto Cleanup feature by EhAria2Extension and Event Hook ([91b6f12](https://github.com/Jvcon/EhAria2/commit/91b6f12ccc4b315cbab34419d9383c3022bc3f20))
+* add check update on startup supported (togglable) ([64aedcd](https://github.com/Jvcon/EhAria2/commit/64aedcd02e21911b5345a91206b66bf75bd4d700))
+* add graphic user interface preference support ([6e132cd](https://github.com/Jvcon/EhAria2/commit/6e132cdbc53b2e0e4073810b2c79f5f76055ad40))
+* add i18n library which support add transaltation during development ([a92ace4](https://github.com/Jvcon/EhAria2/commit/a92ace476eab98614925cb38bb7ffca2bae4bbca))
+* **lib/aria2rpc.ahk:** rewrite Aria2 PRC Function Library ([69d78ad](https://github.com/Jvcon/EhAria2/commit/69d78ad2667654992947abf5aa2e616d229ee70c))
+
+
+### Performance Improvements
+
+* **/lib/aria2rpc.ahk:** optimised the aria2ExecCallback function ([3d0697b](https://github.com/Jvcon/EhAria2/commit/3d0697b8d5f2f3da7198bca6a167ba68178466a3))
+
+
+
 ## [0.1.1](https://github.com/Jvcon/EhAria2/compare/v0.1.0...v0.1.1) (2023-06-29)
 
 
