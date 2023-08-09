@@ -1,7 +1,7 @@
 ; --------------------- COMPILER DIRECTIVES --------------------------
 
 ;@Ahk2Exe-SetDescription Enhanced Aria2Torrent
-;@Ahk2Exe-SetVersion 0.2.0
+;@Ahk2Exe-SetVersion 0.2.1
 ;@Ahk2Exe-SetCopyright Jacques Yip
 ;@Ahk2Exe-SetMainIcon EhAria2Torrent.ico
 ;@Ahk2Exe-SetOrigFilename EhAria2Torrent.exe

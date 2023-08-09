@@ -1,3 +1,13 @@
+## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.0...v0.2.1) (2023-08-09)
+
+
+### Bug Fixes
+
+* fixed icon resource name ([256ee56](https://github.com/Jvcon/EhAria2/commit/256ee5672f3995a26f91b9c2e49a2de78c836f5a))
+* fixed name ([e797eeb](https://github.com/Jvcon/EhAria2/commit/e797eeb89ca4d37c4845400266c551a86fa275d3))
+
+
+
 # [0.2.0](https://github.com/Jvcon/EhAria2/compare/v0.1.1...v0.2.0) (2023-08-09)
 
 
