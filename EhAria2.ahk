@@ -6,8 +6,7 @@
 ;@Ahk2Exe-SetMainIcon EhAria2.ico
 ;@Ahk2Exe-SetOrigFilename EhAria2.exe
 
-; --------------------- GLOBAL --------------------------
-
+; --------------------- INCLUDE --------------------------
 #Include <ConfMan>
 #Include <WebView2>
 #Include <WindowsTheme>
@@ -25,6 +24,7 @@ FileEncoding "UTF-8-RAW"
 
 Persistent
 
+; --------------------- INITIALIZATION - Configuration --------------------------
 CONF_Path := ".\EhAria2.ini"
 CONF := ConfMan.GetConf(CONF_Path)
 CONF.Basic := {
@@ -95,6 +95,37 @@ If (FileRead(CONF_Path) = "") {
 }
 CONF.ReadFile()
 
+; --------------------- INITIALIZATION - VARIABLES --------------------------
+Global appVersion := "0.1.1"
+Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
+
+Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
+Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
+
+Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
+Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
+
+Global SubMenuProflie := Menu()
+Global SubMenuSpeedLimit := Menu()
+Global SubMenuAddTask := Menu()
+Global SubMenuAddTaskProxy := Menu()
+
+Global EhAria2Tray := A_TrayMenu
+Global LanguageList := Array()
+Global LangMenu := Menu()
+
+WindowsTheme.SetAppMode(!sysThemeMode)
+
+; --------------------- INITIALIZATION - RESOURCES --------------------------
+If (!FileExist(A_ScriptDir . "\aria2.conf")) {
+    FileInstall("aria2.conf", "aria2.conf")
+}
+else {
+    If (FileRead(A_ScriptDir . "\aria2.conf") = "") {
+        FileInstall("aria2.conf", "aria2.conf", 1)
+    }
+}
+
 If !FileExist(A_ScriptDir "\lang") {
     DirCreate(A_ScriptDir "\lang")
 }
@@ -107,18 +138,17 @@ If (A_IsCompiled = 1) {
     FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 }
 
+
+; --------------------- INITIALIZATION - LANGUAGES --------------------------
+
+Loop Files A_ScriptDir "\lang\*.ini" {
+    SplitPath A_LoopFileName, , , , &FileNameNoExt
+    LanguageList.Push(FileNameNoExt)
+}
+
 InitialLanguage()
 
-If (!FileExist(A_ScriptDir . "\aria2.conf")) {
-    FileInstall("aria2.conf", "aria2.conf")
-}
-else {
-    If (FileRead(A_ScriptDir . "\aria2.conf") = "") {
-        FileInstall("aria2.conf", "aria2.conf", 1)
-    }
-}
-
-
+; --------------------- INITIALIZATION - DEPENDENCIES --------------------------
 If (CONF.Basic.Aria2Path = "") {
     if (FileExist(A_ScriptDir . '\aria2c.exe') and CONF.Basic.CheckUpdateOnStartup) {
         CheckUpdateAria2()
@@ -173,43 +203,29 @@ If (CONF.Basic.Aria2DhtEnable = 1 | CONF.Basic.Aria2Dht6Enable = 1) {
     InitialDHT()
 }
 
-Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
-
-Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
-Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
-
-Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
-Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
-
-Global SubMenuProflie := Menu()
-Global SubMenuSpeed := Menu()
-Global SubMenuAddTask := Menu()
-Global SubMenuAddTaskProxy := Menu()
-
-Global EhAria2Tray := A_TrayMenu
-Global LangMenu := Menu()
-
-WindowsTheme.SetAppMode(!sysThemeMode)
+If (CONF.Setting.BTTrackers = "") {
+    UpdateBTTracker()
+}
 
 Aria2 := Aria2Rpc("EhAria2", , CONF.Setting.Aria2RpcPort, CONF.Setting.Aria2RpcSecret)
 Aria2.__Init(, CurrentProfilePath, CurrentSpeedLimit)
 
+; --------------------- INITIALIZATION - GUI --------------------------
 CreateTrayMenu()
-CreateLangMenu()
-CreateProfileMenu()
-CreateSpeedMenu()
-UpdateProxyMenu()
+ConfigGuiCreate()
+LangGuiIntial()
+ProfileGuiIntial()
+ProxyGuiIntial()
+SpeedLimitGuiIntial()
 
-; --------------------- Intial --------------------------
-If (CONF.Setting.BTTrackers = "") {
-    UpdateBTTracker()
-}
+; --------------------- INITIALIZATION - STARTUP --------------------------
+
 
 StartAria2()
 
 Return
 
-; --------------------- Func --------------------------
+; --------------------- CLASSES & FUNCTIONS - GUI --------------------------
 CreateTrayMenu(*) {
     A_IconTip := "Enhanced Aria2"
     If A_IsCompiled = 0
@@ -217,11 +233,12 @@ CreateTrayMenu(*) {
     EhAria2Tray.Delete
     A_TrayMenu.ClickCount := 1
     EhAria2Tray.Add(lTrayLang, LangMenu)
-    EhAria2Tray.Add(lTraySpeedLimit, SubMenuSpeed)
+    EhAria2Tray.Add(lTraySpeedLimit, SubMenuSpeedLimit)
     EhAria2Tray.Add(lTrayProfile, SubMenuProflie)
-    EhAria2Tray.Add(lTrayEnableProxy, SwitchProxyStatus)
+    EhAria2Tray.Add(lTrayEnableProxy, ProxyMenuHandler)
     EhAria2Tray.Add(lTrayUpdateTrackerList, UpdateBTTracker)
     EhAria2Tray.Add(lTrayUpdateAria2, UpdateAria2)
+    EhAria2Tray.Add(lTrayPreference, ConfigGuiShow)
     EhAria2Tray.Add
     EhAria2Tray.Add(lTrayExit, ExitTray)
     EhAria2Tray.Add(lTrayRestart, RestartAria2)
@@ -239,60 +256,359 @@ CreateTrayMenu(*) {
     return
 }
 
-CreateLangMenu(*) {
-    LangMenu.Delete
-    Loop Files A_ScriptDir "\lang\*.ini" {
-        SplitPath A_LoopFileName, , , , &FileNameNoExt
-        LangMenu.Add(FileNameNoExt, SwitchLanguage)
+ConfigGuiCreate(recreate := 0) {
+    if (recreate = 1) {
+        ConfigGui.Destroy()
     }
-    LangMenu.Check(CONF.Basic.Language)
+    Global ConfigGui := Gui(, "Preferences ")
+    ConfigGui.OnEvent("Close", ConfigGuiClose)
+    ConfigGui.SetFont("cWhite")
+    WindowsTheme.SetWindowAttribute(ConfigGui, !sysThemeMode)
+
+    Global ConfigTab := ConfigGui.Add("Tab3", "vConfigTab", [lGuiConfigTabBasic, lGuiConfigTabNetwork, lGuiConfigTabExtClean, lGuiConfigTabAbout])
+
+    ConfigTab.UseTab(1)
+    ConfigGui.Add("Text", "x20 y42 h16 w84 +Section +Right ", lTrayProfile . ":")
+    Global ProfileDDL := ConfigGui.Add("DropDownList", "yp vProfileDDL +Left",)
+    ProfileDDL.OnEvent("Change", ProfileGuiHandler)
+    ConfigGui.Add("Text", "x20 yp+32 h16 w84 +Right", lTrayLang . ":")
+    Global LanguageDDL := ConfigGui.Add("DropDownList", "yp vLanguageDDL +Left",)
+    LanguageDDL.OnEvent("Change", LangGuiHandler)
+    ConfigGui.Add("Text", "x20 yp+32 h16 w84 +Right", lTrayUpdateAria2 . ":")
+    Global CheckUpdateOnStartUpCheckbox := ConfigGui.Add("Checkbox", "yp w180 vCheckUpdateOnStartUpCheckbox", lGuiConfigCheckUpdateOnStartUp)
+    CheckUpdateOnStartUpCheckbox.Value := CONF.Basic.CheckUpdateOnStartup
+    CheckUpdateOnStartUpCheckbox.OnEvent("Click", CheckUpdateGuiHandler)
+    Global Aria2VersionText:=ConfigGui.Add("Text","xs+104 yp+32 vAria2VersionText",CONF.Basic.Aria2Version)
+    CheckUpdateButton:=ConfigGui.Add("Button","yp vCheckUpdateButton",lGuiConfigCheckUpdate)
+    CheckUpdateButton.OnEvent("Click",CheckUpdateAria2)
+
+    ConfigTab.UseTab(2)
+    ConfigGui.Add("GroupBox", "x20 y32 w450 h86 +Section +Wrap", lGuiConfigProxy)
+    Global ProxyEnableCheckbox := ConfigGui.Add("CheckBox", "xs+10 ys+20 vProxyEnableCheckbox +Left", lGuiConfigEnable)
+    ProxyEnableCheckbox.Value := CONF.Basic.Aria2ProxyEnable
+    ProxyEnableCheckbox.OnEvent("Click", ProxyEnableGuiHandler)
+    ConfigGui.Add("Text", "xs+10 yp+32 h16 w84 +Right", lGuiConfigProxyUrl . ":")
+    Global ProxyUrlEdit := ConfigGui.Add("Edit", "yp r1 w180 vProxyUrlEdit +Left", CONF.Setting.Aria2Proxy)
+    ProxyUrlEdit.OnEvent("Change", ProxyUrlGuiHandler)
+
+    ConfigGui.Add("GroupBox", "x20 yp+48 w450 h100 +Section", lTraySpeedLimit)
+    ConfigGui.Add("Text", "xs+10 yp+32 h16 w84 +Right", lGuiSpeedMaxLimit . ":")
+    Global SpeedLimitDDL := ConfigGui.Add("DropDownList", "yp  vSpeedLimitDDL +Left",)
+    SpeedLimitDDL.OnEvent("Change", SpeedLimitGuiHandler)
+
+    ConfigTab.UseTab(3)
+
+    ConfigGui.Add("GroupBox", "x20 y32 w450 h64 +Section +Wrap", lGuiExtCleanOn)
+    Global CleanOnCompleteCheckbox := ConfigGui.Add("Checkbox", "xs+10 ys+20 w80 vCleanOnCompleteCheckbox", lGuiStatusComplete)
+    Global CleanOnErrorCheckbox := ConfigGui.Add("Checkbox", "yp w80 vCleanOnErrorCheckbox", lGuiStatusError)
+    Global CleanOnRemovedCheckbox := ConfigGui.Add("Checkbox", "yp w80 vCleanOnRemovedCheckbox", lGuiStatusRemoved)
+    Global CleanOnUnknownCheckbox := ConfigGui.Add("Checkbox", "yp w80 vCleanOnUnknownCheckbox -Section", lGuiStatusUnknown)
+    CleanOnCompleteCheckbox.Value := CONF.Extension.CleanOnComplete
+    CleanOnErrorCheckbox.Value := CONF.Extension.CleanOnError
+    CleanOnRemovedCheckbox.Value := CONF.Extension.CleanOnRemoved
+    CleanOnUnknownCheckbox.Value := CONF.Extension.CleanOnUnknown
+    CleanOnCompleteCheckbox.OnEvent("Click", ExtCleanGuiHandler)
+    CleanOnErrorCheckbox.OnEvent("Click", ExtCleanGuiHandler)
+    CleanOnRemovedCheckbox.OnEvent("Click", ExtCleanGuiHandler)
+    CleanOnUnknownCheckbox.OnEvent("Click", ExtCleanGuiHandler)
+
+    ConfigGui.Add("GroupBox", "x20 yp+48 w450 h100 +Section", lGuiExtCleanRule)
+    ConfigGui.Add("Text", "x32 ys+16 h16 w84 +Right", "*.torrent " . lGuiFiles . ":")
+    Global DeleteDotTorrentMode := Map("0", lGuiConfigDisable, "1", lGuiConfigDefault, "2", lGuiConfigEnhanced)
+    Global DeleteDotTorrentDDL := ConfigGui.Add("DropDownList", "xp+94 ys+16 vDeleteDotTorrentDDL +Left", [lGuiConfigDisable, lGuiConfigDefault, lGuiConfigEnhanced])
+    DeleteDotTorrentDDL.OnEvent("Change", ExtCleanGuiHandler)
+    DeleteDotTorrentDDL.Choose(DeleteDotTorrentMode[CONF.Extension.DeleteDotTorrent])
+    ConfigGui.Add("Text", "x32 ys+48 h16 w84 +Right", "*.aria2 " . lGuiFiles . ":")
+    Global DeleteDotAria2Checkbox := ConfigGui.Add("CheckBox", "xp+94 ys+48 vDeleteDotAria2Checkbox +Left", lGuiConfigEnable)
+    DeleteDotAria2Checkbox.Value := CONF.Extension.DeleteDotAria2
+    DeleteDotAria2Checkbox.OnEvent("Click", ExtCleanGuiHandler)
+    ConfigGui.Add("Text", "x32 ys+64 h16 w84 +Right", lGuiEmptyFolder)
+    Global DeleteEmptyDirCheckbox := ConfigGui.Add("CheckBox", "xp+94 ys+64 vDeleteEmptyDirCheckbox +Left", lGuiConfigEnable)
+    DeleteEmptyDirCheckbox.Value := CONF.Extension.DeleteEmptyDir
+    DeleteEmptyDirCheckbox.OnEvent("Click", ExtCleanGuiHandler)
+
+    ConfigTab.UseTab(4)
+    ConfigGui.Add("Picture", "x32 y42 w32 h-1 +Section", A_ScriptDir . "\EhAria2.ico")
+    AppName := ConfigGui.Add("Text", "xs+44 ys h32 w120 Left vAppName", "EhAria2")
+    AppName.SetFont("s18 bold")
+    AppVer := ConfigGui.Add("Text", "xp+120 yp+16 h32 w180 vAppVersion", appVersion)
+    AppDesc := ConfigGUi.Add("Text", "xs yp+16 h32 wp Left vAppDesc", "Enhanced Aria2AHK")
+    AppDesc.SetFont("s11 bold")
+    ConfigGui.Add("Text", "xs yp+32 h32 wp vCopyright", "Copyright © Jacques Yip")
+    ConfigGui.Add("Text", "xs yp+16 h32 wp vLicense", 'License : GPL-2.0')
+    ConfigGui.Add("Link", "xs yp+16 h32 wp vRepo", 'Open Source : <a href="https://github.com/Jvcon/EhAria2">Jvcon/EhAria2</a>')
+
+    WindowsTheme.SetWindowTheme(ConfigGui, !sysThemeMode)
+
+}
+
+ConfigGuiShow(*) {
+    ConfigGui.Show()
     return
 }
 
-CreateProfileMenu(recreate := 0) {
-    If (recreate = 1) {
-        SubMenuProflie.Delete
-        SubMenuAddTask.Delete
-        SubMenuAddTaskProxy.Delete
-    }
+ConfigGuiClose(*)
+{
+    CONF.WriteFile()
+}
+
+LangGuiIntial(*) {
+    LangMenu.Delete
+    LanguageDDL.Add(LanguageList)
+    loop LanguageList.Length
+        LangMenu.Add(LanguageList[A_Index], LangMenuHandler)
+    LangMenu.Check(CONF.Basic.Language)
+    LanguageDDL.Choose(CONF.Basic.Language)
+}
+
+LangMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
+    LangMenu.Uncheck(CONF.Basic.Language)
+    CONF.Basic.Language := ItemName
+    LangMenu.Check(CONF.Basic.Language)
+    LanguageDDL.Choose(CONF.Basic.Language)
+    CONF.WriteFile()
+    InitialLanguage()
+    CreateTrayMenu()
+    ConfigGuiCreate(1)
+    LangGuiIntial()
+    ProfileGuiIntial()
+    ProxyGuiIntial()
+    SpeedLimitGuiIntial()
+    return
+}
+
+LangGuiHandler(GuiCtrlObj, Info) {
+    LangMenu.Uncheck(CONF.Basic.Language)
+    CONF.Basic.Language := GuiCtrlObj.Text
+    LangMenu.Check(CONF.Basic.Language)
+    CONF.WriteFile()
+    InitialLanguage()
+    CreateTrayMenu()
+    ConfigGuiCreate(1)
+    LangGuiIntial()
+    ProfileGuiIntial()
+    ProxyGuiIntial()
+    SpeedLimitGuiIntial()
+    ConfigGuiShow()
+    return
+}
+
+ProfileGuiIntial(*) {
+    Global ProfileList := Array()
+    Global ProfileMap := Map()
     If (CONF.Profile.ProfileName1 != "") {
-        SubMenuProflie.Add(CONF.Profile.ProfileName1, SwitchProfile)
-        SubMenuAddTask.Add(CONF.Profile.ProfileName1, AddTaskToMenuHandler)
-        SubMenuAddTaskProxy.Add(CONF.Profile.ProfileName1, AddTaskToMenuHandler)
+        ProfileList.Push(CONF.Profile.ProfileName1)
+        ProfileMap[CONF.Profile.ProfileName1] := CONF.Profile.ProfilePath1
     }
     If (CONF.Profile.ProfileName2 != "") {
-        SubMenuProflie.Add(CONF.Profile.ProfileName2, SwitchProfile)
-        SubMenuAddTask.Add(CONF.Profile.ProfileName2, AddTaskToMenuHandler)
-        SubMenuAddTaskProxy.Add(CONF.Profile.ProfileName2, AddTaskToMenuHandler)
+        ProfileList.Push(CONF.Profile.ProfileName2)
+        ProfileMap[CONF.Profile.ProfileName2] := CONF.Profile.ProfilePath2
     }
     If (CONF.Profile.ProfileName3 != "") {
-        SubMenuProflie.Add(CONF.Profile.ProfileName3, SwitchProfile)
-        SubMenuAddTask.Add(CONF.Profile.ProfileName3, AddTaskToMenuHandler)
-        SubMenuAddTaskProxy.Add(CONF.Profile.ProfileName3, AddTaskToMenuHandler)
-
+        ProfileList.Push(CONF.Profile.ProfileName3)
+        ProfileMap[CONF.Profile.ProfileName3] := CONF.Profile.ProfilePath3
     }
+    loop ProfileList.Length {
+        SubMenuProflie.Add(ProfileList[A_Index], ProfileMenuHandler)
+        SubMenuAddTask.Add(ProfileList[A_Index], AddTaskToMenuHandler)
+        SubMenuAddTaskProxy.Add(ProfileList[A_Index], AddTaskToMenuHandler)
+    }
+    ProfileDDL.Add(ProfileList)
     If (CurrentProfileName != "") {
         SubMenuProflie.Check(CurrentProfileName)
+        ProfileDDL.Choose(CurrentProfileName)
     }
     return
 }
 
-CreateSpeedMenu(recreate := 0) {
-    If (recreate = 1) {
-        SubMenuSpeed.Delete
+ProfileMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
+    SubMenuProflie.UnCheck(CurrentProfileName)
+    CONF.Profile.CurrentProfile := ItemPos
+    Global CurrentProfileName := ProfileList[ItemPos]
+    Global CurrentProfilePath := ProfileMap[CurrentProfileName]
+    SubMenuProflie.Check(CurrentProfileName)
+    ProfileDDL.Choose(CurrentProfileName)
+    CONF.WriteFile()
+    Aria2.changeGlobalOption(, dir := CurrentProfilePath)
+    return
+}
+
+ProfileGuiHandler(GuiCtrlObj, Info) {
+    SubMenuProflie.Uncheck(CurrentProfileName)
+    CONF.Profile.CurrentProfile := GuiCtrlObj.Value
+    Global CurrentProfileName := GuiCtrlObj.Text
+    Global CurrentProfilePath := ProfileMap[CurrentProfileName]
+    SubMenuProflie.Check(CurrentProfileName)
+    CONF.WriteFile()
+    Aria2.changeGlobalOption(, dir := CurrentProfilePath)
+    return
+}
+
+CheckUpdateGuiHandler(GuiCtrlObj, Info) {
+    switch GuiCtrlObj.Name {
+        case "CheckUpdateOnStartUpCheckbox":
+            CONF.Basic.CheckUpdateOnStartup := CheckUpdateOnStartUpCheckbox.Value
+            CONF.WriteFile()
+
+        case "":
+            
+
+        default:
+
     }
+
+}
+
+ProxyGuiIntial(*) {
+    ProxyUrlEdit.Value := CONF.Setting.Aria2Proxy
+    Aria2.__Init(CONF.Setting.Aria2Proxy)
+    If (CONF.Basic.Aria2ProxyEnable = 1) {
+        If (!(CONF.Setting.Aria2Proxy = "")) {
+            ProxyEnableCheckbox.Value := 1
+            EhAria2Tray.Check(lTrayEnableProxy)
+        }
+        else {
+            ProxyEnableCheckbox.Value := 0
+            MsgBox lMsgProxyError
+        }
+    }
+    else {
+        ProxyEnableCheckbox.Value := 0
+        EhAria2Tray.Uncheck(lTrayEnableProxy)
+    }
+    return
+}
+
+ProxyMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
+    If (CONF.Basic.Aria2ProxyEnable = 1) {
+        EhAria2Tray.UnCheck(ItemName)
+        ProxyEnableCheckbox.Value := 0
+        CONF.Basic.Aria2ProxyEnable := 0
+        Aria2.changeGlobalOption(proxyUrl := "")
+    }
+    else {
+        If (!(CONF.Setting.Aria2Proxy = "")) {
+            EhAria2Tray.Check(ItemName)
+            ProxyEnableCheckbox.Value := 1
+            CONF.Basic.Aria2ProxyEnable := 1
+            Aria2.changeGlobalOption(proxyUrl := CONF.Setting.Aria2Proxy)
+        }
+        else {
+            MsgBox lMsgProxyError
+        }
+    }
+    CONF.WriteFile()
+    return
+}
+
+ProxyEnableGuiHandler(GuictrlObj, Info) {
+    CONF.Basic.Aria2ProxyEnable := GuiCtrlObj.Value
+    if (GuiCtrlObj.Value = 0) {
+        ProxyUrlEdit.Opt("+ReadOnly")
+        EhAria2Tray.UnCheck(lTrayEnableProxy)
+        Aria2.changeGlobalOption(proxyUrl := "")
+    } else {
+        ProxyUrlEdit.Opt("-ReadOnly")
+        EhAria2Tray.Check(lTrayEnableProxy)
+        CONF.Setting.Aria2Proxy := ProxyUrlEdit.Value
+        If (ProxyUrlEdit.Value = "") {
+
+        }
+        else {
+            Aria2.changeGlobalOption(proxyUrl := CONF.Setting.Aria2Proxy)
+        }
+    }
+    CONF.WriteFile()
+    return
+}
+
+ProxyUrlGuiHandler(GuictrlObj, Info) {
+    CONF.Setting.Aria2Proxy := ProxyUrlEdit.Value
+    If (GuiCtrlObj.Value = "") {
+        Aria2.changeGlobalOption(proxyUrl := "")
+    }
+    else {
+        Aria2.changeGlobalOption(proxyUrl := CONF.Setting.Aria2Proxy)
+    }
+    return
+}
+
+SpeedLimitGuiIntial(*) {
+    Global SpeedLimitList := Array()
+    Global SpeedLimitMap := Map()
     If (CONF.Speed.SpeedName1 != "") {
-        SubMenuSpeed.Add(CONF.Speed.SpeedName1, SwitchSpeedLimit)
+        SpeedLimitList.Push(CONF.Speed.SpeedName1)
+        SpeedLimitMap[CONF.Speed.SpeedName1] := CONF.Speed.SpeedLimit1
     }
     If (CONF.Speed.SpeedName2 != "") {
-        SubMenuSpeed.Add(CONF.Speed.SpeedName2, SwitchSpeedLimit)
+        SpeedLimitList.Push(CONF.Speed.SpeedName2)
+        SpeedLimitMap[CONF.Speed.SpeedName2] := CONF.Speed.SpeedLimit2
     }
     If (CONF.Speed.SpeedName3 != "") {
-        SubMenuSpeed.Add(CONF.Speed.SpeedName3, SwitchSpeedLimit)
+        SpeedLimitList.Push(CONF.Speed.SpeedName3)
+        SpeedLimitMap[CONF.Speed.SpeedName3] := CONF.Speed.SpeedLimit3
     }
+    loop SpeedLimitList.Length {
+        SubMenuSpeedLimit.Add(SpeedLimitList[A_Index], SpeedLimitMenuHandler)
+    }
+    SpeedLimitDDL.Add(SpeedLimitList)
     If (CurrentSpeedName != "") {
-        SubMenuSpeed.Check(CurrentSpeedName)
+        SubMenuSpeedLimit.Check(CurrentSpeedName)
+        SpeedLimitDDL.Choose(CurrentSpeedName)
     }
+    return
+}
+
+SpeedLimitMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
+    SubMenuSpeedLimit.UnCheck(CurrentSpeedName)
+    CONF.Speed.CurrentSpeed := ItemPos
+    Global CurrentSpeedName := SpeedLimitList[ItemPos]
+    Global CurrentSpeedLimit := SpeedLimitMap[CurrentSpeedName]
+    SubMenuSpeedLimit.Check(CurrentSpeedName)
+    SpeedLimitDDL.Choose(CurrentSpeedName)
+    CONF.WriteFile()
+    Aria2.changeGlobalOption(, , maxDownloadLimit := CurrentSpeedLimit)
+    return
+}
+
+SpeedLimitGuiHandler(GuictrlObj, Info) {
+    SubMenuSpeedLimit.Uncheck(CurrentProfileName)
+    CONF.Speed.CurrentSpeed := GuiCtrlObj.Value
+    Global CurrentSpeedName := GuiCtrlObj.Text
+    Global CurrentSpeedLimit := SpeedLimitMap[CurrentSpeedName]
+    SubMenuSpeedLimit.Check(CurrentSpeedName)
+    CONF.WriteFile()
+    Aria2.changeGlobalOption(, , maxDownloadLimit := CurrentSpeedLimit)
+    return
+}
+
+ExtCleanGuiHandler(GuictrlObj, Info) {
+    switch GuictrlObj.Name {
+        case "CleanOnCompleteCheckbox":
+            CONF.Extension.CleanOnComplete := CleanOnCompleteCheckbox.Value
+
+        case "CleanOnErrorCheckbox":
+            CONF.Extension.CleanOnError := CleanOnErrorCheckbox.Value
+
+        case "CleanOnRemovedCheckbox":
+            CONF.Extension.CleanOnRemoved := CleanOnRemovedCheckbox.Value
+
+        case "CleanOnUnknownCheckbox":
+            CONF.Extension.CleanOnUnknown := CleanOnUnknownCheckbox.Value
+
+        case "DeleteDotTorrentDDL":
+            CONF.Extension.DeleteDotTorrent := DeleteDotTorrentDDL.Value - 1
+
+        case "DeleteDotAria2Checkbox":
+            CONF.Extension.DeleteDotAria2 := DeleteDotAria2Checkbox.Value
+
+        case "DeleteEmptyDirCheckbox":
+            CONF.Extension.DeleteEmptyDir := DeleteEmptyDirCheckbox.Value
+
+        default:
+
+    }
+    CONF.WriteFile()
     return
 }
 
@@ -310,6 +626,8 @@ AddTaskMenuHandler(ItemName := 0, ItemPos := 0, MyMenu := 0) {
     AddTask()
 }
 
+; --------------------- CLASSES & FUNCTIONS --------------------------
+
 AddTask(uri := "", profile := "", proxy := "") {
 
     if (proxy = "") {
@@ -325,7 +643,7 @@ AddTask(uri := "", profile := "", proxy := "") {
         return
     }
     else {
-        path := IniRead(CONF_Path, "Profile", "ProfilePath" . profile)
+        path := ProfileMap[ProfileList[profile]]
     }
 
     if (uri = "") {
@@ -423,61 +741,6 @@ AriaNGGuiSize(GuiObj, MinMax, Width, Height) {
     }
     return
 }
-
-SwitchSpeedLimit(ItemName := 0, ItemPos := 0, MyMenu := 0) {
-    SubMenuSpeed.ToggleCheck(CurrentSpeedName)
-    CONF.Speed.CurrentSpeed := ItemPos
-    Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
-    Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
-    SubMenuSpeed.ToggleCheck(CurrentSpeedName)
-    CONF.WriteFile()
-    Aria2.setGlobalSpeedLimit(CurrentSpeedLimit)
-    return
-}
-
-SwitchProfile(ItemName := 0, ItemPos := 0, MyMenu := 0) {
-    SubMenuProflie.ToggleCheck(CurrentProfileName)
-    CONF.Profile.CurrentProfile := ItemPos
-    Global CurrentProfileName := IniRead(CONF_Path, "Profile", "ProfileName" . CONF.Profile.CurrentProfile)
-    Global CurrentProfilePath := IniRead(CONF_Path, "Profile", "ProfilePath" . CONF.Profile.CurrentProfile)
-    SubMenuProflie.ToggleCheck(CurrentProfileName)
-    Aria2.changeGlobalOption(, dir := CurrentProfileName)
-    return
-}
-
-SwitchProxyStatus(*) {
-    If (CONF.Basic.Aria2ProxyEnable = 1) {
-        CONF.Basic.Aria2ProxyEnable := 0
-        Aria2.changeGlobalOption(proxyUrl := "")
-    } else {
-        If (!(CONF.Setting.Aria2Proxy = "")) {
-            CONF.Basic.Aria2ProxyEnable := 1
-            Aria2.changeGlobalOption(proxyUrl := CONF.Setting.Aria2Proxy)
-        }
-        else {
-            MsgBox lMsgProxyError
-        }
-    }
-    CONF.WriteFile()
-    UpdateProxyMenu()
-    return
-}
-
-UpdateProxyMenu(*) {
-    If (CONF.Basic.Aria2ProxyEnable = 1) {
-        If (!(CONF.Setting.Aria2Proxy = "")) {
-            EhAria2Tray.Check(lTrayEnableProxy)
-            Aria2.__Init(CONF.Setting.Aria2Proxy)
-        }
-        else {
-            MsgBox lMsgProxyError
-        }
-    }
-    else {
-        EhAria2Tray.Uncheck(lTrayEnableProxy)
-    }
-}
-
 
 SelectPath(*) {
     aira2selectpath := DirSelect(, 0, lMsgSelectPathTitle)
@@ -642,15 +905,6 @@ RestartAria2(*) {
     return
 }
 
-SwitchLanguage(ItemName, ItemPos, MyMenu) {
-    CONF.Basic.Language := ItemName
-    CONF.WriteFile()
-    InitialLanguage()
-    CreateTrayMenu()
-    CreateLangMenu()
-    return
-}
-
 UpdateAria2(*) {
     CheckUpdateAria2()
     StartAria2()
@@ -667,6 +921,7 @@ CheckUpdateAria2(*) {
         CheckKillAria2()
         InstallAria2()
         CONF.Basic.Aria2Version := Aria2LatestVersion
+        ControlSetText(CONF.Basic.Aria2Version,Aria2VersionText)
         CONF.WriteFile()
         ToolTip(, , , 1)
     }
@@ -718,12 +973,36 @@ InitialLanguage(*) {
     global lTrayEnableProxy := Language.Translate("Tray", "enableproxy")
     global lTrayUpdateTrackerList := Language.Translate("Tray", "updatetracker")
     global lTrayUpdateAria2 := Language.Translate("Tray", "updatearia2")
+    global lTrayPreference := Language.Translate("Tray", "preference")
 
     global lTrayAddTorrentTo := Language.Translate("Tray", "addtorrentto")
     global lTrayAddTaskProxyTo := Language.Translate("Tray", "addtaskproxyto")
     global lTrayAddTaskTo := Language.Translate("Tray", "addtaskto")
     global lTrayAddTorrent := Language.Translate("Tray", "addtorrent")
     global lTrayAddTask := Language.Translate("Tray", "addtask")
+
+    global lGuiConfigTabBasic := Language.Translate("GuiConfig", "basic")
+    global lGuiConfigTabNetwork := Language.Translate("GuiConfig", "network")
+    global lGuiConfigTabExtClean := Language.Translate("GuiConfig", "extclean")
+    global lGuiConfigTabAbout := Language.Translate("GuiConfig", "about")
+    global lGuiConfigEnable := Language.Translate("GuiConfig", "enable")
+    global lGuiConfigDisable := Language.Translate("GuiConfig", "disable")
+    global lGuiConfigEnhanced := Language.Translate("GuiConfig", "enhanced")
+    global lGuiConfigDefault := Language.Translate("GuiConfig", "default")
+    global lGuiConfigProxy := Language.Translate("GuiConfig", "proxy")
+    global lGuiConfigProxyUrl := Language.Translate("GuiConfig", "proxyurl")
+    global lGuiSpeedMaxLimit := Language.Translate("GuiConfig", "speedmaxlimit")
+    global lGuiExtCleanOn := Language.Translate("GuiConfig", "cleanon")
+    global lGuiStatusComplete := Language.Translate("GuiConfig", "complete")
+    global lGuiStatusError := Language.Translate("GuiConfig", "error")
+    global lGuiStatusRemoved := Language.Translate("GuiConfig", "removed")
+    global lGuiStatusUnknown := Language.Translate("GuiConfig", "unknown")
+    global lGuiExtCleanRule := Language.Translate("GuiConfig", "cleanrule")
+    global lGuiFiles := Language.Translate("GuiConfig", "files")
+    global lGuiEmptyFolder := Language.Translate("GuiConfig", "emptyfolder")
+    global lGuiConfigCheckUpdate := Language.Translate("GuiConfig", "checkupdate")
+    global lGuiConfigCheckUpdateOnStartUp := Language.Translate("GuiConfig", "checkupdateonstartup")
+
 
     global lGuiUriInputText := Language.Translate("GuiUriInput", "text")
     global lGuiUriInputBtnOK := Language.Translate("GuiUriInput", "btnok")

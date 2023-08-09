@@ -11,6 +11,7 @@ $env = $args[1]
 $appname = $args[2]
 $zipname = $appname + "_v" + "$version"
 $setversion = ";@Ahk2Exe-SetVersion " + $version
+$globalversion = "Global appVersion := `"" + $version  + "`""
 Write-Host "App:" $appname
 Write-Host "Version:" $version
 Write-Host "Environment:" $env
@@ -18,6 +19,7 @@ Write-Host "Environment:" $env
 if ($env -eq 'version') {
     Get-ChildItem “$cwd\*.ahk” | ForEach-Object {
         (Get-Content $_) | ForEach-Object { $_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
+        (Get-Content $_) | ForEach-Object { $_ -Replace ("Global appVersion := `"" + '[0-9]+.[0-9]+.[0-9]+' + "`"") , $globalversion } | Set-Content $_
     }   
 }
 
@@ -27,6 +29,7 @@ if ($env -eq 'prod') {
     }
     Get-ChildItem “$cwd\*.ahk” | ForEach-Object {
         (Get-Content $_) | ForEach-Object { $_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
+        (Get-Content $_) | ForEach-Object { $_ -Replace ("Global appVersion := `"" + '[0-9]+.[0-9]+.[0-9]+' + "`"") , $globalversion } | Set-Content $_
     }
 
     foreach ($file in (Get-ChildItem -Path $cwd\*.ahk)) {
