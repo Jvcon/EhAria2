@@ -880,12 +880,12 @@ StartAria2(*) {
         }
     }
     If (A_IsCompiled = 1) {
-        cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extenstion.exe"
-        cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extenstion.exe"
+        cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extension.exe"
+        cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extension.exe"
     }
     else {
-        cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extenstion.ahk"
-        cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extenstion.ahk"
+        cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extension.ahk"
+        cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extension.ahk"
     }
     Run cmd, , "Hide"
     return
