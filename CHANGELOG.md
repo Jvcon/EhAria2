@@ -1,4 +1,13 @@
-## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.0...v0.2.1) (2023-08-09)
+## [0.2.2](https://github.com/Jvcon/EhAria2/compare/0.2.1...v0.2.2) (2023-08-11)
+
+
+### Bug Fixes
+
+* fix icon resource and language localization ([d0894de](https://github.com/Jvcon/EhAria2/commit/d0894ded99a87963c1436f7edf3a4d28e9d2194a))
+
+
+
+## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.1...0.2.1) (2023-08-09)
 
 
 ### Bug Fixes

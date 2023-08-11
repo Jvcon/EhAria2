@@ -1,7 +1,7 @@
 ; --------------------- COMPILER DIRECTIVES --------------------------
 
 ;@Ahk2Exe-SetDescription Enhanced Aria2AHK
-;@Ahk2Exe-SetVersion 0.2.1
+;@Ahk2Exe-SetVersion 0.2.2
 ;@Ahk2Exe-SetCopyright Jacques Yip
 ;@Ahk2Exe-SetMainIcon EhAria2.ico
 ;@Ahk2Exe-SetOrigFilename EhAria2.exe
@@ -96,7 +96,7 @@ If (FileRead(CONF_Path) = "") {
 CONF.ReadFile()
 
 ; --------------------- INITIALIZATION - VARIABLES --------------------------
-Global appVersion := "0.2.1"
+Global appVersion := "0.2.2"
 Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
 
 Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
