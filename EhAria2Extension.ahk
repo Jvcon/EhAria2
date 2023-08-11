@@ -45,14 +45,13 @@ Global DeleteDotTorrentMode := Map(0, "Off", 1, "Normal", 2, "Enhanced")
 If !FileExist(A_ScriptDir . "\log") {
     DirCreate(A_ScriptDir . "\log")
 }
-loop files A_ScriptDir . "\log\*.log"{
-    SplitPath A_LoopFileFullPath,,,,&namenoext
-    if ( DateDiff(FormatTime(A_Now,"yyyyMMdd") ,FormatTime(namenoext,"yyyyMMdd") ,"Days") > 5){
-        MsgBox "Cleaning log files"
+loop files A_ScriptDir . "\log\*.log" {
+    SplitPath A_LoopFileFullPath, , , , &namenoext
+    if (DateDiff(FormatTime(A_Now, "yyyyMMdd"), FormatTime(namenoext, "yyyyMMdd"), "Days") > 5) {
         FileDelete A_LoopFileFullPath
     }
 }
-Global LogFile:= A_ScriptDir . "\log\" . FormatTime(,"yyyyMMdd") . ".log"
+Global LogFile := A_ScriptDir . "\log\" . FormatTime(, "yyyyMMdd") . ".log"
 LogOutput := FileOpen(LogFile, "a")
 
 Global Aria2 := Aria2Rpc("EhAria2", "http://127.0.0.1", Aria2RpcPort, Aria2RpcSecret)
@@ -60,12 +59,11 @@ Global Aria2 := Aria2Rpc("EhAria2", "http://127.0.0.1", Aria2RpcPort, Aria2RpcSe
 if (Aria2SessionPath = "") {
     Aria2SessionPath := A_ScriptDir . '\aria2.session'
 }
-MsgBox "Running Extension"
 if (A_Args.Length < 1) {
     Global taskGid := ""
     Global fileCount := ""
     Global filePath := ""
-    PrintLog("error",Language.Translate("Msg", "extparamerror"))
+    PrintLog("error", Language.Translate("Msg", "extparamerror"))
     MsgBox Language.Translate("Msg", "extparamerror"), , "Iconx T5"
     ExitApp
 }
@@ -76,20 +74,20 @@ else {
 }
 
 if (fileCount = 0) {
-    PrintLog("info",Language.Translate("Msg", "extmagnet"))
+    PrintLog("info", Language.Translate("Msg", "extmagnet"))
 }
 
 Aria2.tellStatus(taskGid, &status, &dir, &infoHash)
 
 if (dir = "") {
-    PrintLog("error","Failed to get download directory!.")
+    PrintLog("error", Language.Translate("Msg", "getdirerror"))
     ExitApp
 }
 
 
 if ((status = "error" and CleanOnError = 1) | (status = "removed" and CleanOnRemoved = 1)) {
     if (FileExist(checkDotAria2())) {
-        PrintLog("success","Download task " . status . ", deleting files...")
+        PrintLog("success", Language.Translate("Msg", "deletefile"))
         if (FileGetAttrib(filePath) = "D") {
             DirDelete filePath
         } else {
@@ -98,10 +96,10 @@ if ((status = "error" and CleanOnError = 1) | (status = "removed" and CleanOnRem
         deleteDotAria2()
     }
     else if (FileExist(filePath)) {
-        PrintLog("info","Skip delete. Download completed files: " . filePath . ".")
+        PrintLog("info", Language.Translate("Msg", "skip") . Language.Translate("Msg", "downloadcompleted") . ": " . filePath . ".")
     }
     else {
-        PrintLog("error","Skip delete. File does not exist: " . filePath . ".")
+        PrintLog("error", Language.Translate("Msg", "skip") . Language.Translate("Msg", "filenotexist",filePath))
     }
 }
 else if (status = "complete") {
@@ -114,7 +112,7 @@ else if (status = "complete") {
 }
 else if (CleanOnUnknown = 1) {
     if (FileExist(checkDotAria2())) {
-        PrintLog("success", "Download task force removed, deleting files...")
+        PrintLog("success", Language.Translate("Msg", "forceremoved") . ", " . Language.Translate("Msg", "deletefile"))
         if (FileGetAttrib(filePath) = "D") {
             DirDelete filePath
         } else {
@@ -123,14 +121,14 @@ else if (CleanOnUnknown = 1) {
         deleteDotAria2()
     }
     else if (FileExist(filePath)) {
-        PrintLog("info","Skip delete. Download completed files: " . filePath . ".")
+        PrintLog("info", Language.Translate("Msg", "skip") . Language.Translate("Msg", "downloadcompleted") . ": " . filePath . ".")
     }
     else {
-        PrintLog("error","Skip delete. File does not exist: " . filePath . ".")
+        PrintLog("error", Language.Translate("Msg", "skip") . Language.Translate("Msg", "filenotexist",filePath))
     }
 }
 else {
-    PrintLog("error","Skip. Task status invalid: " . status . ".")
+    PrintLog("error", Language.Translate("Msg", "skip") . Language.Translate("Msg", "invalid"))
     ExitApp
 }
 
@@ -144,7 +142,7 @@ checkDotAria2(*) {
     }
     else {
         dotAria2File := ""
-        OutputDebug "Couldn't found .aria2 file."
+        PrintLog("info",Language("Msg","filenotexist",".aria2"))
     }
     return dotAria2File
 }
@@ -153,12 +151,12 @@ deleteDotAria2(*) {
     if (ExtDeleteDotAria2 = 1) {
         dotAria2File := checkDotAria2()
         if (dotAria2File != "" and FileExist(dotAria2File)) {
-            OutputDebug "Deleting .aria2 file ..."
+            PrintLog("success",Language("Msg","deletefile",".aria2"))
             FileDelete dotAria2File
         }
     }
     else {
-        OutputDebug "Delete .aria2 file function is disabled."
+        PrintLog("info",Language("Msg","cleanfuncdisabled",".aria2"))
     }
     return
 }
@@ -166,24 +164,24 @@ deleteDotAria2(*) {
 deleteDotTorrent(*) {
     sleep(Aria2SessionInterval + 1)
     if (infoHash = "") {
-        OutputDebug "General download task, skipped delete .torrent file."
+        PrintLog("info",Language("Msg","generaltask"))
     }
     else {
         dotTorrentFile := dir . infoHash . ".torrent"
         if (ExtDeleteDotTorrent = 1 | ExtDeleteDotTorrent = 2) {
             if (FileExist(dotTorrentFile)) {
-                OutputDebug "Deleting .torrent file ..."
+                PrintLog("success",Language("Msg","filedelete",".torrent"))
                 FileDelete dotTorrentFile
             }
             else {
-                OutputDebug ".torrent file may exist but cannot be found. Recommended to enable enhanced mode."
+                PrintLog("error",Language("Msg","filenotfound",".torrent") . Language("Msg","recommendedenhanced"))
             }
         }
         else if (ExtDeleteDotTorrent = 2) {
             deleteTorrentEh()
         }
         else {
-            OutputDebug "Delete .torrent file function is disabled."
+            PrintLog("info",Language("Msg","cleanfuncdisabled",".torrent"))
         }
     }
 }
@@ -193,15 +191,15 @@ deleteTorrentEh(*) {
         session := FileRead(Aria2SessionPath)
         loop files dir . '*.torrent', "F"
             if (InStr(session, A_LoopFileName) != "") {
-                OutputDebug "Deleting .torrent file (Enhanced) ..."
+                PrintLog("success",Language("Msg","enhancedmode") . Language("Msg","filedelete",".torrent"))
                 FileDelete A_LoopFileFullPath
             }
             else {
-                OutputDebug ".torrent file does not exist."
+                PrintLog("info",Language("Msg","filenotexist",".torrent"))
             }
     }
     else {
-        OutputDebug "Session file does not exist."
+        PrintLog("info",Language("Msg","filenotexist",".session"))
     }
 }
 
@@ -250,7 +248,7 @@ deleteExcludeFile(*) {
             }
         }
         else {
-            OutputDebug "Delete exclude/include file function is disabled."
+            PrintLog("info",Language("Msg","cleanfuncdisabled","exclude/include"))
         }
     }
     return
@@ -271,13 +269,14 @@ deleteEmptyDir(*) {
     }
 }
 
-PrintLog(type:="",message:="",funcName:=""){
-    logInfo:=Map()
-    logInfo["time"]:=FormatTime(A_NoW,"yyyyMMddHHmmss")
-    logInfo["function"]:=funcName
-    logInfo["result"]:=type
-    logInfo["message"]:=message
+PrintLog(type := "", message := "", funcName := "") {
+    logInfo := Map()
+    logInfo["time"] := FormatTime(A_NoW, "yyyyMMddHHmmss")
+    logInfo["function"] := funcName
+    logInfo["result"] := type
+    logInfo["message"] := message
     logInfo["task"] := taskGid
+    logInfo["taskStatus"] := status
     logInfo["taskFileCount"] := fileCount
     logInfo["taskFilePath"] := filePath
     LogOutput.Write(Jxon_Dump(logInfo) . "`n")

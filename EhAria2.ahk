@@ -138,6 +138,17 @@ If (A_IsCompiled = 1) {
     FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 }
 
+Global Pics:= Array()
+if(A_IsCompiled=1){
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2.exe",,&imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Torrent.exe",,&imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Extension.exe",,&imagetype))
+}
+else{
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2.ico",,&imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Torrent.ico",,&imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Extension.ico",,&imagetype))
+}
 
 ; --------------------- INITIALIZATION - LANGUAGES --------------------------
 
@@ -229,7 +240,7 @@ Return
 CreateTrayMenu(*) {
     A_IconTip := "Enhanced Aria2"
     If A_IsCompiled = 0
-        TraySetIcon("EhAria2.ico", 1, 1)
+        TraySetIcon "HICON:*" Pics[1]
     EhAria2Tray.Delete
     A_TrayMenu.ClickCount := 1
     EhAria2Tray.Add(lTrayLang, LangMenu)
@@ -278,9 +289,9 @@ ConfigGuiCreate(recreate := 0) {
     Global CheckUpdateOnStartUpCheckbox := ConfigGui.Add("Checkbox", "yp w180 vCheckUpdateOnStartUpCheckbox", lGuiConfigCheckUpdateOnStartUp)
     CheckUpdateOnStartUpCheckbox.Value := CONF.Basic.CheckUpdateOnStartup
     CheckUpdateOnStartUpCheckbox.OnEvent("Click", CheckUpdateGuiHandler)
-    Global Aria2VersionText:=ConfigGui.Add("Text","xs+104 yp+32 vAria2VersionText",CONF.Basic.Aria2Version)
-    CheckUpdateButton:=ConfigGui.Add("Button","yp vCheckUpdateButton",lGuiConfigCheckUpdate)
-    CheckUpdateButton.OnEvent("Click",CheckUpdateAria2)
+    Global Aria2VersionText := ConfigGui.Add("Text", "xs+104 yp+32 vAria2VersionText", CONF.Basic.Aria2Version)
+    CheckUpdateButton := ConfigGui.Add("Button", "yp vCheckUpdateButton", lGuiConfigCheckUpdate)
+    CheckUpdateButton.OnEvent("Click", CheckUpdateAria2)
 
     ConfigTab.UseTab(2)
     ConfigGui.Add("GroupBox", "x20 y32 w450 h86 +Section +Wrap", lGuiConfigProxy)
@@ -328,7 +339,7 @@ ConfigGuiCreate(recreate := 0) {
     DeleteEmptyDirCheckbox.OnEvent("Click", ExtCleanGuiHandler)
 
     ConfigTab.UseTab(4)
-    ConfigGui.Add("Picture", "x32 y42 w32 h-1 +Section", A_ScriptDir . "\EhAria2.ico")
+    ConfigGui.Add("Picture", "x32 y42 w32 h-1 +Section", "HICON:*" Pics[1])
     AppName := ConfigGui.Add("Text", "xs+44 ys h32 w120 Left vAppName", "EhAria2")
     AppName.SetFont("s18 bold")
     AppVer := ConfigGui.Add("Text", "xp+120 yp+16 h32 w180 vAppVersion", appVersion)
@@ -451,8 +462,6 @@ CheckUpdateGuiHandler(GuiCtrlObj, Info) {
             CONF.WriteFile()
 
         case "":
-            
-
         default:
 
     }
@@ -921,7 +930,7 @@ CheckUpdateAria2(*) {
         CheckKillAria2()
         InstallAria2()
         CONF.Basic.Aria2Version := Aria2LatestVersion
-        ControlSetText(CONF.Basic.Aria2Version,Aria2VersionText)
+        ControlSetText(CONF.Basic.Aria2Version, Aria2VersionText)
         CONF.WriteFile()
         ToolTip(, , , 1)
     }
