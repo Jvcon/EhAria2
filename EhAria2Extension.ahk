@@ -142,7 +142,7 @@ checkDotAria2(*) {
     }
     else {
         dotAria2File := ""
-        PrintLog("info",Language("Msg","filenotexist",".aria2"))
+        PrintLog("info",Language.Translate("Msg","filenotexist",".aria2"))
     }
     return dotAria2File
 }
@@ -151,12 +151,12 @@ deleteDotAria2(*) {
     if (ExtDeleteDotAria2 = 1) {
         dotAria2File := checkDotAria2()
         if (dotAria2File != "" and FileExist(dotAria2File)) {
-            PrintLog("success",Language("Msg","deletefile",".aria2"))
+            PrintLog("success",Language.Translate("Msg","deletefile",".aria2"))
             FileDelete dotAria2File
         }
     }
     else {
-        PrintLog("info",Language("Msg","cleanfuncdisabled",".aria2"))
+        PrintLog("info",Language.Translate("Msg","cleanfuncdisabled",".aria2"))
     }
     return
 }
@@ -164,24 +164,24 @@ deleteDotAria2(*) {
 deleteDotTorrent(*) {
     sleep(Aria2SessionInterval + 1)
     if (infoHash = "") {
-        PrintLog("info",Language("Msg","generaltask"))
+        PrintLog("info",Language.Translate("Msg","generaltask"))
     }
     else {
         dotTorrentFile := dir . infoHash . ".torrent"
         if (ExtDeleteDotTorrent = 1 | ExtDeleteDotTorrent = 2) {
             if (FileExist(dotTorrentFile)) {
-                PrintLog("success",Language("Msg","filedelete",".torrent"))
+                PrintLog("success",Language.Translate("Msg","filedelete",".torrent"))
                 FileDelete dotTorrentFile
             }
             else {
-                PrintLog("error",Language("Msg","filenotfound",".torrent") . Language("Msg","recommendedenhanced"))
+                PrintLog("error",Language.Translate("Msg","filenotfound",".torrent") . Language.Translate("Msg","recommendedenhanced"))
             }
         }
         else if (ExtDeleteDotTorrent = 2) {
             deleteTorrentEh()
         }
         else {
-            PrintLog("info",Language("Msg","cleanfuncdisabled",".torrent"))
+            PrintLog("info",Language.Translate("Msg","cleanfuncdisabled",".torrent"))
         }
     }
 }
@@ -191,15 +191,15 @@ deleteTorrentEh(*) {
         session := FileRead(Aria2SessionPath)
         loop files dir . '*.torrent', "F"
             if (InStr(session, A_LoopFileName) != "") {
-                PrintLog("success",Language("Msg","enhancedmode") . Language("Msg","filedelete",".torrent"))
+                PrintLog("success",Language.Translate("Msg","enhancedmode") . Language.Translate("Msg","filedelete",".torrent"))
                 FileDelete A_LoopFileFullPath
             }
             else {
-                PrintLog("info",Language("Msg","filenotexist",".torrent"))
+                PrintLog("info",Language.Translate("Msg","filenotexist",".torrent"))
             }
     }
     else {
-        PrintLog("info",Language("Msg","filenotexist",".session"))
+        PrintLog("info",Language.Translate("Msg","filenotexist",".session"))
     }
 }
 
@@ -248,7 +248,7 @@ deleteExcludeFile(*) {
             }
         }
         else {
-            PrintLog("info",Language("Msg","cleanfuncdisabled","exclude/include"))
+            PrintLog("info",Language.Translate("Msg","cleanfuncdisabled","exclude/include"))
         }
     }
     return
