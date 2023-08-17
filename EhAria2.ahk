@@ -826,6 +826,7 @@ DownloadDHT(path := A_ScriptDir . "\", filename := "dht.dat") {
 }
 
 StartAria2(*) {
+    Global Aria2PID:=""
     If (CONF.Basic.Aria2Path = "") {
         cmd := A_ScriptDir . "\aria2c.exe"
     }
@@ -896,15 +897,16 @@ StartAria2(*) {
         cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extension.ahk"
         cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extension.ahk"
     }
-    Run cmd, , "Hide"
+    Run cmd, , "Hide",&Aria2PID
     return
 }
 
 CheckKillAria2()
 {
-    If ProcessExist("aria2c.exe") != 0
+    if (ProcessExist(Aria2PID)!=0){
         Aria2.saveSession()
-    ProcessClose("aria2c.exe")
+        ProcessClose("aria2c.exe")
+    }
     return
 }
 
