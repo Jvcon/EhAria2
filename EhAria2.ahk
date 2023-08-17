@@ -131,23 +131,27 @@ If !FileExist(A_ScriptDir "\lang") {
 }
 
 If (A_IsCompiled = 1) {
+    FileInstall(".\lang\de_de.ini", "lang\de_de.ini", 1)
     FileInstall(".\lang\en_us.ini", "lang\en_us.ini", 1)
+    FileInstall(".\lang\fr_fr.ini", "lang\fr_fr.ini", 1)
+    FileInstall(".\lang\ja_jp.ini", "lang\ja_jp.ini", 1)
+    FileInstall(".\lang\ko_kr.ini", "lang\ko_kr.ini", 1)
     FileInstall(".\lang\zh_cn.ini", "lang\zh_cn.ini", 1)
 
     FileInstall("index.html", "index.html", 1)
     FileInstall("WebView2Loader.dll", "WebView2Loader.dll", 1)
 }
 
-Global Pics:= Array()
-if(A_IsCompiled=1){
-    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2.exe",,&imagetype))
-    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Torrent.exe",,&imagetype))
-    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Extension.exe",,&imagetype))
+Global Pics := Array()
+if (A_IsCompiled = 1) {
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2.exe", , &imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Torrent.exe", , &imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Extension.exe", , &imagetype))
 }
-else{
-    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2.ico",,&imagetype))
-    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Torrent.ico",,&imagetype))
-    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Extension.ico",,&imagetype))
+else {
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2.ico", , &imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Torrent.ico", , &imagetype))
+    Pics.Push(LoadPicture(A_ScriptDir . "\EhAria2Extension.ico", , &imagetype))
 }
 
 ; --------------------- INITIALIZATION - LANGUAGES --------------------------
@@ -826,7 +830,7 @@ DownloadDHT(path := A_ScriptDir . "\", filename := "dht.dat") {
 }
 
 StartAria2(*) {
-    Global Aria2PID:=""
+    Global Aria2PID := ""
     If (CONF.Basic.Aria2Path = "") {
         cmd := A_ScriptDir . "\aria2c.exe"
     }
@@ -897,13 +901,13 @@ StartAria2(*) {
         cmd .= " --on-download-complete=" . A_ScriptDir . "\EhAria2Extension.ahk"
         cmd .= " --on-download-error=" . A_ScriptDir . "\EhAria2Extension.ahk"
     }
-    Run cmd, , "Hide",&Aria2PID
+    Run cmd, , "Hide", &Aria2PID
     return
 }
 
 CheckKillAria2()
 {
-    if (ProcessExist(Aria2PID)!=0){
+    if (ProcessExist(Aria2PID) != 0) {
         Aria2.saveSession()
         ProcessClose("aria2c.exe")
     }
