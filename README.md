@@ -50,7 +50,7 @@ Technologies used in the project:
 - Autohotkey
 - Html
 
-# 🔗 Related
+## 🔗 Related
 
 - [Aria2](https://aria2.github.io/)
 - [AriaNg](https://github.com/mayswind/AriaNg) - A modern web frontend making aria2 easier to use.

@@ -1,3 +1,18 @@
+## [0.2.3](https://github.com/Jvcon/EhAria2/compare/v0.2.2...v0.2.3) (2023-08-30)
+
+
+### Bug Fixes
+
+* **eharia2extension.ahk:** fixed localization library issue ([9422901](https://github.com/Jvcon/EhAria2/commit/94229013f7db27c0c5a22ffe8d32658c9bbde0b6))
+
+
+### Features
+
+* add multiple language packs ([98faffe](https://github.com/Jvcon/EhAria2/commit/98faffe729ae4e92676c2a5107320fa582e2c321))
+* **eharia2.ahk:** add process ID traceability ([a1c3fc5](https://github.com/Jvcon/EhAria2/commit/a1c3fc56e1ad3f7d12e2fd9ebcc33dfedc174456))
+
+
+
 ## [0.2.2](https://github.com/Jvcon/EhAria2/compare/0.2.1...v0.2.2) (2023-08-11)
 
 
@@ -8,6 +23,10 @@
 
 
 ## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.1...0.2.1) (2023-08-09)
+
+
+
+## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.0...v0.2.1) (2023-08-09)
 
 
 ### Bug Fixes
