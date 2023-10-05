@@ -56,6 +56,8 @@ LogOutput := FileOpen(LogFile, "a")
 
 Global Aria2 := Aria2Rpc("EhAria2", "http://127.0.0.1", Aria2RpcPort, Aria2RpcSecret)
 
+status:= ""
+
 if (Aria2SessionPath = "") {
     Aria2SessionPath := A_ScriptDir . '\aria2.session'
 }
@@ -89,9 +91,9 @@ if ((status = "error" and CleanOnError = 1) | (status = "removed" and CleanOnRem
     if (FileExist(checkDotAria2())) {
         PrintLog("success", Language.Translate("Msg", "deletefile"))
         if (FileGetAttrib(filePath) = "D") {
-            DirDelete filePath
+            try DirDelete filePath
         } else {
-            FileDelete filePath
+            try FileDelete filePath
         }
         deleteDotAria2()
     }
@@ -114,9 +116,9 @@ else if (CleanOnUnknown = 1) {
     if (FileExist(checkDotAria2())) {
         PrintLog("success", Language.Translate("Msg", "forceremoved") . ", " . Language.Translate("Msg", "deletefile"))
         if (FileGetAttrib(filePath) = "D") {
-            DirDelete filePath
+            try DirDelete filePath
         } else {
-            FileDelete filePath
+            try FileDelete filePath
         }
         deleteDotAria2()
     }
@@ -152,7 +154,7 @@ deleteDotAria2(*) {
         dotAria2File := checkDotAria2()
         if (dotAria2File != "" and FileExist(dotAria2File)) {
             PrintLog("success",Language.Translate("Msg","deletefile",".aria2"))
-            FileDelete dotAria2File
+            try FileDelete dotAria2File
         }
     }
     else {
@@ -171,14 +173,14 @@ deleteDotTorrent(*) {
         if (ExtDeleteDotTorrent = 1 | ExtDeleteDotTorrent = 2) {
             if (FileExist(dotTorrentFile)) {
                 PrintLog("success",Language.Translate("Msg","filedelete",".torrent"))
-                FileDelete dotTorrentFile
+                try FileDelete dotTorrentFile
             }
             else {
                 PrintLog("error",Language.Translate("Msg","filenotfound",".torrent") . Language.Translate("Msg","recommendedenhanced"))
             }
         }
         else if (ExtDeleteDotTorrent = 2) {
-            deleteTorrentEh()
+            try deleteTorrentEh()
         }
         else {
             PrintLog("info",Language.Translate("Msg","cleanfuncdisabled",".torrent"))
@@ -192,7 +194,7 @@ deleteTorrentEh(*) {
         loop files dir . '*.torrent', "F"
             if (InStr(session, A_LoopFileName) != "") {
                 PrintLog("success",Language.Translate("Msg","enhancedmode") . Language.Translate("Msg","filedelete",".torrent"))
-                FileDelete A_LoopFileFullPath
+                try FileDelete A_LoopFileFullPath
             }
             else {
                 PrintLog("info",Language.Translate("Msg","filenotexist",".torrent"))
@@ -243,7 +245,7 @@ deleteExcludeFile(*) {
                         return hasvalue := false
                     }
                 if (hasvalue := false) {
-                    FileDelete A_LoopFileFullPath
+                    try FileDelete A_LoopFileFullPath
                 }
             }
         }
@@ -264,7 +266,7 @@ deleteEmptyDir(*) {
     if (ExtDeleteEmptyDir = 1) {
         loop files dir, "DR"
             if (A_LoopFileSize = 0) {
-                DirDelete A_LoopFileFullPath
+                try DirDelete A_LoopFileFullPath
             }
     }
 }
