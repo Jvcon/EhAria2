@@ -61,9 +61,9 @@ CONF.Profile := {
 }
 CONF.Speed := {
     CurrentSpeed: 1
-    , SpeedName1: "高速-50M"
+    , SpeedName1: "50M"
     , SpeedLimit1: "50M"
-    , SpeedName2: "低速-18M"
+    , SpeedName2: "18M"
     , SpeedLimit2: "18M"
     , SpeedName3: ""
     , SpeedLimit3: ""
@@ -813,18 +813,17 @@ InitialDHT(ItemName := 0, ItemPos := 0, MyMenu := 0) {
 
 DownloadDHT(path := A_ScriptDir . "\", filename := "dht.dat") {
     try {
-        Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
+        Download "https://raw.githubusercontent.com/P3TERX/aria2.conf/master/" filename, path . filename
     }
     catch as error {
-        downloadError := MsgBox(error, , "RC Default2 T5")
-        if (downloadError = "Cancel") {
-            FileAppend "", A_ScriptDir . "\" . filename
-        }
-        else if (downloadError = "Retry") {
-            Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
-        }
-        else if (downloadError = "Timeout") {
-            Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
+        downloadError := MsgBox(error, , "RC Default2")
+        switch downloadError {
+            case "Cancel":
+                FileAppend "", A_ScriptDir . "\" . filename
+            case "Retry", "Timeout":
+                Download "https://raw.githubusercontent.com/P3TERX/aria2.conf/master/" filename, path . filename
+            default:
+                FileAppend "", A_ScriptDir . "\" . filename
         }
     }
 }

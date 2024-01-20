@@ -1,24 +1,24 @@
 Import-Module Microsoft.PowerShell.Utility
 
 $cwd = (Get-Location).Path
-$ahkpath = "C:\Users\Jacques\scoop\apps\autohotkey\current"
-$ahk2exe = $ahkpath + "\Compiler\Ahk2Exe.exe"
-$ahk64base = $ahkpath + "\v2\AutoHotkey64.exe"
-$command = $ahk2exe + " /silent verbose " + " /base " + $ahk64base + " /out  $cwd\build\"
-$testcommand = $ahk2exe + " /base " + $ahk64base + " /out  $cwd\test\"
+$ahkpath = 'C:\Users\Jacques\scoop\apps\autohotkey\current'
+$ahk2exe = $ahkpath + '\Compiler\Ahk2Exe.exe'
+$ahk64base = $ahkpath + '\v2\AutoHotkey64.exe'
+$command = $ahk2exe + ' /silent verbose ' + ' /base ' + $ahk64base + " /out  $cwd\build\"
+$testcommand = $ahk2exe + ' /base ' + $ahk64base + " /out  $cwd\test\"
 $version = $args[0]
 $env = $args[1]
 $appname = $args[2]
-$zipname = $appname + "_v" + "$version"
-$setversion = ";@Ahk2Exe-SetVersion " + $version
+$zipname = $appname + '_v' + "$version"
+$setversion = ';@Ahk2Exe-SetVersion ' + $version
 $globalversion = "Global appVersion := `"" + $version + "`""
-Write-Host "App:" $appname
-Write-Host "Version:" $version
-Write-Host "Environment:" $env
+Write-Host 'App:' $appname
+Write-Host 'Version:' $version
+Write-Host 'Environment:' $env
 
 if ($env -eq 'version') {
     Get-ChildItem “$cwd\*.ahk” | ForEach-Object {
-        (Get-Content $_) | ForEach-Object { $_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
+        (Get-Content $_) | ForEach-Object { $_ -Replace (';@Ahk2Exe-SetVersion ' + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
         (Get-Content $_) | ForEach-Object { $_ -Replace ("Global appVersion := `"" + '[0-9]+.[0-9]+.[0-9]+' + "`"") , $globalversion } | Set-Content $_
     }   
 }
@@ -28,7 +28,7 @@ if ($env -eq 'prod') {
         mkdir $cwd\build
     }
     Get-ChildItem “$cwd\*.ahk” | ForEach-Object {
-        (Get-Content $_) | ForEach-Object { $_ -Replace (";@Ahk2Exe-SetVersion " + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
+        (Get-Content $_) | ForEach-Object { $_ -Replace (';@Ahk2Exe-SetVersion ' + '[0-9]+.[0-9]+.[0-9]+') , $setversion } | Set-Content $_
         (Get-Content $_) | ForEach-Object { $_ -Replace ("Global appVersion := `"" + '[0-9]+.[0-9]+.[0-9]+' + "`"") , $globalversion } | Set-Content $_
     }
 
