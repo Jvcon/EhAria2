@@ -253,7 +253,7 @@ deleteDotTorrent(*) {
 
 deleteFileCache(*) {
     if (filePath != "") {
-        if (FileGetAttrib(filePath) = "D") {
+        if (InStr(FileGetAttrib(filePath), "D")) {
             DirDelete filePath
         } else {
             FileDelete filePath
@@ -279,7 +279,7 @@ deleteExcludeFile(*) {
     saveFileList := Array()
     excludeExtList := StrSplit(ExcludeExt, "|")
     includeExtList := StrSplit(IncludeExt, "|")
-    if (FileGetAttrib(filePath) = "D") {
+    if (InStr(FileGetAttrib(filePath), "D")) {
         if (ExtDeleteExclude = 1) {
             if (excludeExtList.Length < 1) {
                 return

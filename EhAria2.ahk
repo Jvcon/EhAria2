@@ -99,6 +99,8 @@ CONF.ReadFile()
 Global appVersion := "0.2.3"
 Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
 
+Global Aria2PID := ""
+
 Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
 Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
 
@@ -191,7 +193,7 @@ else {
     if (FileExist(CONF.Basic.Aria2Path . '\aria2c.exe')) {
     }
     else {
-        isCustom := MsgBox(lMsgCustomReselect, lMsgCustomNotFoundTitle, "R/N T5")
+        isCustom := MsgBox(lMsgCustomReselect, lMsgCustomNotFoundTitle, "RC")
         if (isCustom = "RETRY") {
             SelectPath()
         }
@@ -816,7 +818,7 @@ DownloadDHT(path := A_ScriptDir . "\", filename := "dht.dat") {
         Download "https://raw.githubusercontent.com/P3TERX/aria2.conf/master/" filename, path . filename
     }
     catch as error {
-        downloadError := MsgBox(error, , "RC Default2")
+        downloadError := MsgBox(error.Message, , "RC Default2")
         switch downloadError {
             case "Cancel":
                 FileAppend "", A_ScriptDir . "\" . filename
@@ -928,8 +930,8 @@ UpdateAria2(*) {
 CheckUpdateAria2(*) {
     MonitorGetWorkArea("1", &Left, &Top, &Right, &Bottom)
     ToolTip("Checking Version", Right, Bottom, 1)
-    Aria2Repo := Github("aria2", "aria2")
-    Aria2LatestVersion := Aria2Repo.Version
+    Aria2Repo := Github.latest("aria2", "aria2")
+    Aria2LatestVersion := Aria2Repo.version
     ToolTip(, , , 1)
     if (CONF.Basic.Aria2Version != Aria2LatestVersion) {
         CheckKillAria2()
@@ -949,10 +951,14 @@ CheckUpdateAria2(*) {
 InstallAria2(*) {
     try DirDelete A_ScriptDir "\temp", 1
     try FileDelete A_ScriptDir "\release.zip"
-    Aria2Repo := Github("aria2", "aria2")
+    Aria2Repo := Github.latest("aria2", "aria2")
     Aria2LatestVersion := Aria2Repo.Version
-    DownloadUrl := Aria2Repo.searchReleases("win-64bit")
-    Aria2Repo.Download(A_ScriptDir "\release.zip", DownloadUrl)
+    for url in Aria2Repo.downloadURLs {
+        if InStr(url, "win-64bit") {
+            Github.download(url, A_ScriptDir "\release.zip")
+            break
+        }
+    }
     psExpandArchiveScript := "
         (
             param($src, $dest)
