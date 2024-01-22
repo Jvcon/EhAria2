@@ -159,7 +159,7 @@ class Aria2Rpc {
         if (!response.Has("error")) {
             status := response["result"]["status"]
             dir := response["result"]["dir"]
-            if(response["result"].Has("infoHash")){
+            if (response["result"].Has("infoHash")) {
                 infoHash := response["result"]["infoHash"]
             }
         }
