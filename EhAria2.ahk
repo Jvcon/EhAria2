@@ -99,6 +99,8 @@ CONF.ReadFile()
 Global appVersion := "0.2.3"
 Global sysThemeMode := RegRead("HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme")
 
+Global Aria2PID := ""
+
 Global CurrentSpeedName := IniRead(CONF_Path, "Speed", "SpeedName" . CONF.Speed.CurrentSpeed)
 Global CurrentSpeedLimit := IniRead(CONF_Path, "Speed", "SpeedLimit" . CONF.Speed.CurrentSpeed)
 
@@ -816,7 +818,7 @@ DownloadDHT(path := A_ScriptDir . "\", filename := "dht.dat") {
         Download "https://github.com/P3TERX/aria2.conf/raw/master/" filename, path . filename
     }
     catch as error {
-        downloadError := MsgBox(error, , "RC Default2 T5")
+        downloadError := MsgBox(error.Message, , "RC Default2")
         if (downloadError = "Cancel") {
             FileAppend "", A_ScriptDir . "\" . filename
         }
@@ -954,7 +956,7 @@ InstallAria2(*) {
     Aria2LatestVersion := Aria2Repo.Version
     for url in Aria2Repo.downloadURLs {
         if InStr(url, "win-64bit") {
-            Github.download(url, A_ScriptDir "\release.zip") 
+            Github.download(url, A_ScriptDir "\release.zip")
             break
         }
     }

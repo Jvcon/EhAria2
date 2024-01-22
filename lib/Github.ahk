@@ -14,7 +14,8 @@
         change_notes: "",
         date: "",
         }
-        
+
+
     @method Github.historicReleases(Username,Repository_Name)
         array of objects => [{
             downloadURL: "",
@@ -23,11 +24,16 @@
             date: ""
         }]
     @func this.Download(url,path)
-        improves on download(): 
+        improves on download():
         - if user provides wrong extension, function will apply proper extension
-        - allows user to provide directory 
+        - allows user to provide directory
         example:    Providing A_ScriptDir to Download will throw error
-                    Providing A_ScriptDir to Github.Download() will supply Download() with release name 
+                    Providing A_ScriptDir to Github.Download() will supply Download() with release name
+        improves on download():
+        - if user provides wrong extension, function will apply proper extension
+        - allows user to provide directory
+        example:    Providing A_ScriptDir to Download will throw error
+                    Providing A_ScriptDir to Github.Download() will supply Download() with release name
 */
 class Github
 {
@@ -174,8 +180,8 @@ class Github
         Github.Download(URL := Github.source_zip, PathLocal)
     }
     /*
-    benefit over download() => handles users path, and applies appropriate extension. 
-    IE: If user provides (Path:=A_ScriptDir "\download.zip") but extension is .7z, extension is modified for the user. 
+    benefit over download() => handles users path, and applies appropriate extension.
+    IE: If user provides (Path:=A_ScriptDir "\download.zip") but extension is .7z, extension is modified for the user.
     If user provides directory, name for file is applied from the path (download() will not).
     Download (
         @param URL to download
