@@ -39,5 +39,6 @@ jobs:
             build/EhAria2.exe
             build/EhAria2Extension.exe
             build/EhAria2Torrent.exe
+            build/EhAria2Manager.exe
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
