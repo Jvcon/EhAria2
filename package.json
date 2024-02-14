@@ -28,9 +28,9 @@
     "license": "",
     "devDependencies": {
         "concurrently": "^8.2.0",
-        "conventional-changelog-cli": "^3.0.0",
+        "conventional-changelog-cli": "^4.1.0",
         "cz-conventional-changelog": "^3.3.0",
-        "nodemon": "^3.0.1"
+        "nodemon": "^3.0.3"
     },
     "config": {
         "commitizen": {
