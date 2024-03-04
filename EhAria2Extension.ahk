@@ -1,7 +1,7 @@
 ; --------------------- Compiler Directives --------------------------
 
 ;@Ahk2Exe-SetDescription Enhanced Aria2Extension
-;@Ahk2Exe-SetVersion 0.2.3
+;@Ahk2Exe-SetVersion 0.3.0
 ;@Ahk2Exe-SetCopyright Jacques Yip
 ;@Ahk2Exe-SetMainIcon EhAria2Extension.ico
 ;@Ahk2Exe-SetOrigFilename EhAria2Extension.exe

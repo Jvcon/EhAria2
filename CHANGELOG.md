@@ -1,3 +1,18 @@
+# [0.3.0](https://github.com/Jvcon/EhAria2/compare/v0.2.3...v0.3.0) (2024-03-04)
+
+
+### Bug Fixes
+
+* fix save session on exit ([7e346a4](https://github.com/Jvcon/EhAria2/commit/7e346a40a2fb5831bcee4d7b3a13842f6a7a5add))
+
+
+### Features
+
+* update github.ahk library ([db9cfa3](https://github.com/Jvcon/EhAria2/commit/db9cfa39ed8f857cf433ae98e6f1609197a49313))
+* update github.ahk library ([ac0d2a5](https://github.com/Jvcon/EhAria2/commit/ac0d2a5c36e1558879c16307d63f1d9cffa54b3a))
+
+
+
 ## [0.2.3](https://github.com/Jvcon/EhAria2/compare/v0.2.2...v0.2.3) (2023-08-30)
 
 
@@ -13,7 +28,7 @@
 
 
 
-## [0.2.2](https://github.com/Jvcon/EhAria2/compare/0.2.1...v0.2.2) (2023-08-11)
+## [0.2.2](https://github.com/Jvcon/EhAria2/compare/v0.2.1...v0.2.2) (2023-08-11)
 
 
 ### Bug Fixes
@@ -22,11 +37,7 @@
 
 
 
-## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.1...0.2.1) (2023-08-09)
-
-
-
-## [0.2.1](https://github.com/Jvcon/EhAria2/compare/v0.2.0...v0.2.1) (2023-08-09)
+## [0.2.1](https://github.com/Jvcon/EhAria2/compare/0.2.1...v0.2.1) (2023-08-09)
 
 
 ### Bug Fixes
