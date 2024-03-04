@@ -1,6 +1,10 @@
 name: Compile
 
 on:
+  label:
+    types:
+      - created
+      - edited
   push:
     branches:
       - main
