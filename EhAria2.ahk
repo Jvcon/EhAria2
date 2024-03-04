@@ -908,6 +908,9 @@ StartAria2(*) {
 
 CheckKillAria2()
 {
+    try{
+        Aria2.saveSession()
+    }
     if (ProcessExist(Aria2PID) != 0) {
         Aria2.saveSession()
         ProcessClose("aria2c.exe")
